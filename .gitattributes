@@ -1,0 +1,10 @@
+# Normalise line endings in the repository.
+#
+# .prettierrc sets endOfLine: "lf" and .editorconfig sets end_of_line = lf.
+# Without this file, a teammate whose git has core.autocrlf=true checks out
+# CRLF and `npm run format:check` fails on every file. See
+# docs/DEVELOPMENT_GUIDE.md.
+* text=auto eol=lf
+
+# Keep the lockfile out of diffs and merge conflicts.
+package-lock.json -diff linguist-generated

@@ -1,0 +1,265 @@
+# Decisions
+
+A record of choices that were not obvious, and why they went the way they did.
+When a decision changes, edit the entry and add a line saying what changed -
+do not delete the history.
+
+---
+
+## D-001 - Epsilon is `null` internally, the glyph only in display
+
+**Status** Accepted - permanent
+
+**Decision** `transition.symbol === null` is the one representation of an
+epsilon transition. `EPSILON_DISPLAY` exists only for rendering.
+
+**Alternatives** the glyph as a string; the literal `"epsilon"`; the empty
+string; a separate `epsilonTransitions` array.
+
+**Why** String representations of epsilon are the classic source of bugs here,
+because `"eps"` and the glyph both look correct in review and in a debugger. The
+empty string is worse: it compares falsy and silently behaves like a missing
+value. `null` cannot be mistaken for a symbol, and TypeScript forces every
+consumer to handle the case.
+
+A separate array was rejected because then every consumer has to remember to
+read two collections, and forgetting one produces a graph that is subtly wrong
+rather than obviously broken.
+
+**Consequence** Everyone writes `symbol === null`. The alphabet never contains
+epsilon.
+
+---
+
+## D-002 - State ids are numbers, qN is a label
+
+**Status** Accepted - permanent
+
+**Decision** Ids are dense non-negative integers. `"q0"` is produced at render
+time.
+
+**Why** Ids are compared, sorted, used as Set members and as Map keys. Numbers
+do all of that correctly. String ids sort wrongly, cost more to compare, and
+tempt people to parse them back out.
+
+**Consequence** `formatStateId()` is the single conversion point. No automaton
+data ever contains a `q`.
+
+---
+
+## D-003 - The shared contract lives in `src/compiler/types.ts`
+
+**Status** Accepted
+
+**Decision** The shared types live with the compiler, not in a neutral
+`src/types/`.
+
+**Why** The compiler is the only module that produces these values; the other
+two consume them. Putting the definition next to the producer removes any
+question about who updates it. A neutral directory sounds fairer but leaves the
+contract unowned, and an unowned contract drifts.
+
+**Consequence** Person 1 hosts the file, but changing it needs team agreement -
+see `TEAM_WORKFLOW.md`.
+
+---
+
+## D-004 - Plain CSS with custom properties, not Tailwind or CSS-in-JS
+
+**Status** Accepted
+
+**Decision** Plain CSS files, semantic custom properties in `variables.css`,
+component styles in `styles/components/`.
+
+**Alternatives** Tailwind; CSS Modules; styled-components.
+
+**Why** This is an academic project whose readers are three students and an
+examiner. Plain CSS is the thing every one of them can already read. Tailwind
+would add a build step, a config file and a vocabulary to learn, in exchange for
+speed we do not need at this size. CSS-in-JS adds a runtime cost to a page whose
+job is rendering graphs.
+
+Custom properties give the one thing that genuinely matters with three authors:
+a single place where colours are defined, so nobody hard-codes a blue.
+
+**Consequence** Dark mode comes free via `prefers-color-scheme`. Adding a colour
+means adding a token.
+
+---
+
+## D-005 - React Flow for graph rendering
+
+**Status** Accepted
+
+**Decision** `@xyflow/react` (React Flow v12).
+
+**Alternatives** raw SVG; D3; Cytoscape.js; vis-network.
+
+**Why** Pan, zoom, fit, custom nodes and custom edges are all needed, and all of
+them are fiddly to write by hand. React Flow provides them with a React-shaped
+API, so Person 2 writes components rather than imperative DOM code.
+
+Raw SVG was seriously considered - it has no dependency and full control - but
+pan and zoom alone would cost a day, and that day is better spent on the
+compiler. D3 is a data-visualization toolkit, not a graph editor, and its force
+layout is non-deterministic, which is disqualifying (see D-007). Cytoscape is
+excellent but sits outside React, which makes highlighting from React state
+awkward.
+
+**Consequence** One dependency in `dependencies`. The adapters exist to keep
+React Flow types from leaking into the rest of the app, so this choice can be
+reversed by rewriting two files.
+
+---
+
+## D-006 - No dead state in the DFA
+
+**Status** Accepted
+
+**Decision** Subset construction does not materialise the empty set. A missing
+transition means reject.
+
+**Alternatives** a total DFA with an explicit trap state.
+
+**Why** A trap state adds a node with a self-loop on every alphabet symbol to
+every DFA graph. For a two-symbol alphabet that is one extra node and two extra
+edges carrying no information a student needs; for a four-symbol alphabet the
+graph becomes noticeably harder to read. The teaching value is in the reachable
+structure.
+
+**Consequence** The DFA is partial. `simulate` handles a missing transition
+explicitly and the UI renders an em dash. Minimization has to treat "no
+transition" as a distinguishing property - see `COMPILER_PIPELINE.md` stage 8.
+If a total DFA is wanted later, add the dead state as a display option, not in
+the data.
+
+---
+
+## D-007 - Layout must be deterministic
+
+**Status** Accepted
+
+**Decision** The layout algorithm produces identical positions for identical
+input. No force-directed or randomised layout.
+
+**Why** The graph is watched while a simulation steps through it. If nodes move
+between renders, the student loses track of which circle is which, and the
+animation teaches nothing. Determinism also makes the layout testable.
+
+**Consequence** BFS layering rather than a physics simulation. Slightly less
+pretty on dense graphs, far more useful.
+
+---
+
+## D-008 - Parallel transitions merge into one edge
+
+**Status** Accepted
+
+**Decision** Transitions sharing a `(from, to)` pair render as a single edge
+with a combined label.
+
+**Why** Without merging, an alphabet of four symbols produces four overlapping
+curves between the same two circles, and the labels collide. With merging the
+graph stays readable as the alphabet grows.
+
+**Consequence** The graph shows fewer edges than the transition table has rows.
+That is correct and worth a line in the legend; the table remains the exhaustive
+view.
+
+---
+
+## D-009 - Plus and question-mark operators are not supported in v1
+
+**Status** Accepted - revisitable
+
+**Decision** The supported syntax is literals, alternation, concatenation,
+Kleene star and parentheses.
+
+**Why** Both extra operators are sugar, so neither teaches a concept the student
+does not already meet. Each adds validator rules, precedence entries, Thompson
+cases and tests. The cost is small but real, and the benefit is zero for the
+project purpose.
+
+**Consequence** The validator rejects them explicitly rather than mis-parsing
+them. If the team adds them later, follow the checklist in
+`REGEX_SPECIFICATION.md` and update this entry.
+
+---
+
+## D-010 - The compiler is pure TypeScript with no React
+
+**Status** Accepted
+
+**Decision** Nothing under `src/compiler/` imports React or touches the DOM.
+
+**Why** The algorithms are the academic core. Keeping them framework-free means
+they are tested without a DOM, run in milliseconds, and can be read by someone
+who does not know React - including the examiner. It also makes the boundary
+between Person 1 and the others unambiguous.
+
+**Consequence** The compiler throws rather than rendering an error. The UI
+translates errors into messages.
+
+---
+
+## D-011 - compileRegex returns everything at once
+
+**Status** Accepted
+
+**Decision** One call returns tokens, postfix, NFA, DFA, minimized DFA and the
+step descriptions.
+
+**Alternatives** a function per stage, called by the UI; a lazy or streaming API.
+
+**Why** The UI needs every stage anyway - that is the whole product. A single
+result is one thing to pass around, one thing to cache, one thing to type. A
+per-stage API would make the UI responsible for the pipeline order, which is
+compiler knowledge leaking upward.
+
+**Consequence** `CompilationResult` is a wide type. Everything in it is needed
+by some step of the UI; nothing is speculative.
+
+---
+
+## D-012 - Vitest rather than Jest
+
+**Status** Accepted
+
+**Decision** Vitest with jsdom and React Testing Library.
+
+**Why** It reads the existing Vite config, so aliases and transforms work with
+no extra setup, and the Jest-compatible API means any Jest knowledge transfers.
+Jest would need its own transform and module-resolution configuration to agree
+with Vite - a second source of truth for how imports resolve.
+
+**Consequence** `vite.config.ts` carries the test config too.
+
+---
+
+## D-013 - Vitest 3, not Vitest 2
+
+**Status** Accepted
+
+**Decision** `vitest@^3` alongside `vite@^6`.
+
+**Why** Vitest 2 depends on Vite 5. Installed next to Vite 6 it produced a
+nested second copy of Vite, and the two copies of the plugin types are not
+assignable to each other, so `vite.config.ts` failed to typecheck. Vitest 3
+shares the project Vite 6 installation and the duplicate disappears.
+
+**Consequence** Keep the Vitest and Vite major versions compatible when
+upgrading either. If `npm ls vite --all` ever shows two versions, that is the
+cause.
+
+---
+
+## D-014 - React 18, not React 19
+
+**Status** Accepted
+
+**Decision** React 18.3 with `@types/react@18`.
+
+**Why** React Flow v12 and the testing-library ecosystem are both well proven on 18. Nothing in this project needs a React 19 feature, and a course project is
+the wrong place to debug an ecosystem that has not caught up.
+
+**Consequence** Revisit only if a dependency requires 19.

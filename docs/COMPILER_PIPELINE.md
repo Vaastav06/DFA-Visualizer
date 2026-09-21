@@ -249,10 +249,12 @@ needed, add the dead state as a display option, not in the data.
 Produces the smallest DFA recognising the same language.
 
 1. Remove states unreachable from the start state.
-2. Partition the rest into accepting and non-accepting.
-3. Refine: split any block whose members disagree on which block a symbol leads
-   to. Repeat until nothing splits (Hopcroft, or the table-filling method).
-4. Each final block becomes one state.
+2. Remove dead states - those from which no accepting state is reachable.
+3. Partition the rest into accepting and non-accepting.
+4. Refine: split any block whose members disagree on which block a symbol leads
+   to. Repeat until nothing splits. The implementation uses Moore's partition
+   refinement; Hopcroft and the table-filling method give the same answer.
+5. Each final block becomes one state, renumbered by BFS from the start block.
 
 **Output invariants**
 
@@ -260,12 +262,20 @@ Produces the smallest DFA recognising the same language.
 - ids renumbered `0..m-1`; `0` is the start state
 - a merged state's `nfaStates` is the union of its members', ascending and unique
 
-Note the partial-DFA subtlety: with no dead state, "state p has no transition on
-a" is itself a distinguishing property. Two states are equivalent only if they
-agree on both which symbols they accept and where those symbols lead. Treat a
-missing transition as a distinct target (an implicit dead block), or add a
-temporary dead state during minimization and drop it afterwards. Whichever you
-choose, write it in a comment and in `DECISIONS.md`.
+Step 2 is what keeps the result minimal under the partial-DFA contract (D-006).
+A state whose language is empty can simply be deleted, because a missing
+transition already means "reject". Subset construction never produces one -
+every state of a Thompson NFA can reach the accept state - but `minimizeDfa` is
+also called on hand-built automata, and it must be minimal for those too.
+
+Note the partial-DFA subtlety in step 4: with no dead state, "state p has no
+transition on a" is itself a distinguishing property. Two states are equivalent
+only if they agree on both which symbols they are defined for and where those
+symbols lead. The implementation gives a missing transition its own signature
+marker rather than ignoring the symbol. See `DECISIONS.md` D-015.
+
+If every state is removed by steps 1 and 2, the language is empty and the result
+is a single non-accepting state with no transitions.
 
 ---
 

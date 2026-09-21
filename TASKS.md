@@ -48,22 +48,22 @@ Files: `src/compiler/`, `tests/compiler/`
 
 Files: `src/visualization/`, `tests/visualization/`
 
-- [ ] Graph foundation - React Flow mounted in `AutomataGraph`
-- [ ] NFA adapter
-- [ ] DFA adapter, with `nfaStates` on each node
-- [ ] Graph layout - BFS layering, deterministic
-- [ ] NFA graph
-- [ ] DFA graph
-- [ ] Minimized DFA graph
-- [ ] Node styling - single border, double border, start arrow
-- [ ] Edge styling - labels, arrowheads, self-loops
-- [ ] eps transitions - dashed, labelled with the glyph
-- [ ] Merged parallel transitions
-- [ ] Graph controls - zoom, pan, fit, reset
-- [ ] Graph legend
-- [ ] Responsive graph
-- [ ] Highlighting from the `highlight` prop
-- [ ] Visualization tests
+- [x] Graph foundation - React Flow mounted in `AutomataGraph`
+- [x] NFA adapter
+- [x] DFA adapter, with `nfaStates` on each node
+- [x] Graph layout - BFS layering, deterministic
+- [x] NFA graph
+- [x] DFA graph
+- [x] Minimized DFA graph
+- [x] Node styling - single border, double border, start arrow
+- [x] Edge styling - labels, arrowheads, self-loops
+- [x] eps transitions - dashed, labelled with the glyph
+- [x] Merged parallel transitions
+- [x] Graph controls - zoom, pan, fit, reset
+- [x] Graph legend
+- [x] Responsive graph
+- [x] Highlighting from the `highlight` prop
+- [x] Visualization tests
 
 ## UI / Application - Person 3
 

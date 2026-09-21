@@ -1,5 +1,5 @@
 /**
- * Stage 6 — Epsilon closure.
+ * Stage 6 - Epsilon closure.
  *
  * OWNER: Person 1.
  * CONTRACT: pure set operations over an NFA. No mutation of the NFA.
@@ -14,23 +14,74 @@
  * use the array as a stable set key.
  */
 
-import { InternalCompilerError } from './errors';
-import type { NFA } from './types';
+import type { NFA, Transition } from './types';
 
-/** Epsilon closure of a set of NFA states. Returns a sorted, unique array. */
+/** Adjacency built once per closure/move run, so repeated calls stay cheap. */
+type Adjacency = Map<number, Transition[]>;
+
+function buildAdjacency(transitions: Transition[]): Adjacency {
+  const adjacency: Adjacency = new Map();
+
+  for (const transition of transitions) {
+    const outgoing = adjacency.get(transition.from);
+    if (outgoing === undefined) {
+      adjacency.set(transition.from, [transition]);
+    } else {
+      outgoing.push(transition);
+    }
+  }
+
+  return adjacency;
+}
+
+/** Ascending, duplicate-free array from a set of state ids. */
+function sortedUnique(states: Iterable<number>): number[] {
+  return [...new Set(states)].sort((a, b) => a - b);
+}
+
+/**
+ * Epsilon closure of a set of NFA states. Returns a sorted, unique array.
+ *
+ * Depth-first traversal that follows only epsilon transitions, marking states
+ * as it goes. The marking is what makes it terminate: `*` always introduces a
+ * cycle of epsilon transitions, so an unmarked traversal would never stop.
+ */
 export function epsilonClosure(nfa: NFA, states: number[]): number[] {
-  throw new InternalCompilerError(
-    'Epsilon closure is not implemented yet.',
-    `TODO(Person 1): implement epsilonClosure() in src/compiler/epsilonClosure.ts. Received ${states.length} states, NFA has ${nfa.states.length}.`
-  );
+  const adjacency = buildAdjacency(nfa.transitions);
+  const closure = new Set<number>(states);
+  const stack = [...new Set(states)];
+
+  while (stack.length > 0) {
+    const state = stack.pop() as number;
+
+    for (const transition of adjacency.get(state) ?? []) {
+      if (transition.symbol === null && !closure.has(transition.to)) {
+        closure.add(transition.to);
+        stack.push(transition.to);
+      }
+    }
+  }
+
+  return sortedUnique(closure);
 }
 
 /** States reachable from `states` on exactly one `symbol`. Sorted and unique. */
 export function move(nfa: NFA, states: number[], symbol: string): number[] {
-  throw new InternalCompilerError(
-    'move() is not implemented yet.',
-    `TODO(Person 1): implement move() in src/compiler/epsilonClosure.ts. Symbol: ${symbol}, ${states.length} of ${nfa.states.length} states.`
-  );
+  const adjacency = buildAdjacency(nfa.transitions);
+  const reached = new Set<number>();
+  const sources = new Set(states);
+
+  for (const state of sources) {
+    for (const transition of adjacency.get(state) ?? []) {
+      // `symbol` is never null here: epsilon is not part of the alphabet, so a
+      // move on epsilon is meaningless. Closure is the operation for that.
+      if (transition.symbol === symbol) {
+        reached.add(transition.to);
+      }
+    }
+  }
+
+  return sortedUnique(reached);
 }
 
 /** Canonical string key for a state set. Use for the subset-construction map. */

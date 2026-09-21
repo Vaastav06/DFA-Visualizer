@@ -21,14 +21,25 @@ describe('application shell', () => {
   });
 
   it('surfaces a compiler failure as a user-facing message, not a crash', async () => {
-    // The compiler is not implemented yet, so it throws InternalCompilerError.
-    // This asserts the error PATH is wired, which stays true afterwards: once
-    // the pipeline works, change the input below to an invalid expression.
     render(<App />);
 
-    await userEvent.type(screen.getByLabelText(/regular expression/i), 'a|b');
+    // "(a|b" has an unmatched parenthesis, so the validator rejects it. This
+    // asserts the error PATH is wired all the way from compileRegex through
+    // useCompiler to <ErrorDisplay />.
+    await userEvent.type(screen.getByLabelText(/regular expression/i), '(a|b');
     await userEvent.click(screen.getByRole('button', { name: /convert/i }));
 
     expect(screen.getByRole('alert')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(/parenthesis/i);
+  });
+
+  it('compiles a valid expression without surfacing an error', async () => {
+    render(<App />);
+
+    await userEvent.type(screen.getByLabelText(/regular expression/i), '(a|b)*abb');
+    await userEvent.click(screen.getByRole('button', { name: /convert/i }));
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.queryByText(/Nothing to show yet/i)).not.toBeInTheDocument();
   });
 });

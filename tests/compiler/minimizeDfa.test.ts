@@ -101,9 +101,9 @@ describe('the merged state mapping', () => {
     const minimized = minimizeDfa(dfa);
     const mergedAccepting = minimized.states.find((state) => state.isAccepting);
     const originalAccepting = dfa.states.filter((state) => state.isAccepting);
-    const expected = [
-      ...new Set(originalAccepting.flatMap((state) => state.nfaStates)),
-    ].sort((a, b) => a - b);
+    const expected = [...new Set(originalAccepting.flatMap((state) => state.nfaStates))].sort(
+      (a, b) => a - b
+    );
     expect(mergedAccepting?.nfaStates).toEqual(expected);
   });
 

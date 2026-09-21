@@ -37,7 +37,10 @@ describe('acceptance', () => {
   it.each(cases)('%s rejects the right strings', (regex, _accepted, rejected) => {
     const dfa = buildDfa(regex);
     for (const input of rejected) {
-      expect({ input, accepted: simulate(dfa, input).accepted }).toEqual({ input, accepted: false });
+      expect({ input, accepted: simulate(dfa, input).accepted }).toEqual({
+        input,
+        accepted: false,
+      });
     }
   });
 });

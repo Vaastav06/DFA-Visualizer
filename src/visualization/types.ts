@@ -25,6 +25,8 @@ export interface StateNodeData extends Record<string, unknown> {
   nfaStates?: number[];
   /** Set by the UI while animating a simulation. */
   isHighlighted?: boolean;
+  /** Whether this state is currently selected in the UI. */
+  isSelected?: boolean;
 }
 
 /** Data carried by a `TransitionEdge` in the graph. */
@@ -58,6 +60,10 @@ export interface AutomataGraphBaseProps {
   height?: number | string;
   /** Extra class name on the wrapper element. */
   className?: string;
+  /** Optional state selection callback. */
+  onStateClick?: (stateId: number, data: StateNodeData) => void;
+  /** Optional selected state id to show selected visual state. */
+  selectedStateId?: number | null;
 }
 
 /** Props of the public `<NfaGraph />`. */

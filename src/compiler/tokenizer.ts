@@ -1,5 +1,5 @@
 /**
- * Stage 2 — Tokenization.
+ * Stage 2 - Tokenization.
  *
  * OWNER: Person 1.
  * CONTRACT: `tokenize(regex)` returns one token per meaningful character, in
@@ -8,24 +8,31 @@
  * Whitespace is dropped. Runs only on input that already passed `validate()`.
  *
  * The result becomes `CompilationResult.tokens` and is rendered verbatim by the
- * UI, so do not add synthetic tokens here — explicit concatenation is stage 3.
+ * UI, so do not add synthetic tokens here - explicit concatenation is stage 3.
  */
-
-import { InternalCompilerError } from './errors';
-
-/** Splits a validated regular expression into tokens. */
-export function tokenize(regex: string): string[] {
-  throw new InternalCompilerError(
-    'The tokenizer is not implemented yet.',
-    `TODO(Person 1): implement tokenize() in src/compiler/tokenizer.ts. Received: ${JSON.stringify(regex)}`
-  );
-}
 
 /** Operator characters recognised by the tokenizer. */
 export const OPERATORS = ['|', '*', '.'] as const;
 
 /** Grouping characters recognised by the tokenizer. */
 export const PARENTHESES = ['(', ')'] as const;
+
+/** Splits a validated regular expression into tokens. */
+export function tokenize(regex: string): string[] {
+  const tokens: string[] = [];
+
+  for (const char of regex) {
+    // Whitespace carries no meaning in the grammar, so it never becomes a
+    // token. The validator has already rejected every other unsupported
+    // character, which is why this loop needs no error branch.
+    if (/\s/.test(char)) {
+      continue;
+    }
+    tokens.push(char);
+  }
+
+  return tokens;
+}
 
 /** True when `token` is a literal (i.e. neither an operator nor a parenthesis). */
 export function isLiteral(token: string): boolean {
@@ -34,4 +41,23 @@ export function isLiteral(token: string): boolean {
     !(OPERATORS as readonly string[]).includes(token) &&
     !(PARENTHESES as readonly string[]).includes(token)
   );
+}
+
+/**
+ * The distinct literals of a token list, in ascending order.
+ *
+ * Deterministic ordering matters: it becomes `NFA.alphabet`, which fixes the
+ * column order of the UI transition tables and the iteration order of subset
+ * construction. See docs/DECISIONS.md D-007.
+ */
+export function collectAlphabet(tokens: string[]): string[] {
+  const symbols = new Set<string>();
+
+  for (const token of tokens) {
+    if (isLiteral(token)) {
+      symbols.add(token);
+    }
+  }
+
+  return [...symbols].sort();
 }

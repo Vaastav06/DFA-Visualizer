@@ -67,17 +67,25 @@ Notes:
 
 ## Person 2 - Visualization
 
-Status: **In Progress**
+Status: **Done** - merged to `main`
 
-Branch: `feature/visualization` (5 commits pushed; fill in the detail below)
+Branch: `feature/visualization`
 
 Current task:
 
--
+- None. Available to help with Phase 3 integration.
 
 Completed:
 
--
+- Graph shell in `AutomataGraph` with React Flow v12 (`@xyflow/react`)
+- NFA adapter with parallel transition merging and epsilon translation (`null -> ε`)
+- DFA adapter preserving `nfaStates` subset mappings, enforcing no-epsilon invariant
+- Deterministic BFS layered layout algorithm (`graphLayout.ts`)
+- Custom `StateNode` with concentric double border, incoming start arrow (`→`), and simulation highlight
+- Custom `TransitionEdge` with self-loop geometry, back-edge curves, and dashed epsilon edges
+- Accessible `GraphControls` (+, −, Fit, Reset) and `GraphLegend`
+- Responsive layout and theme support via project CSS custom properties
+- 34 visualization tests (12 adapter tests, 7 layout tests, 15 component/graph tests)
 
 Blocked:
 
@@ -85,14 +93,8 @@ Blocked:
 
 Notes:
 
-- Start with `docs/VISUALIZATION_SPEC.md`.
-- Build against `tests/fixtures/mockAutomata.ts`. Do not wait for Person 1 and
-  do not call the compiler.
-- Adapters first - they are pure functions and easy to test.
-- **Heads-up:** this branch was created before the compiler merged, so its
-  merge-base is the foundation commit. Nothing is broken - the fixtures did not
-  change - but pick up the new `main` before integration:
-  `git pull origin main --rebase`.
+- `<NfaGraph />` and `<DfaGraph />` are fully implemented and on `main`.
+- Person 3 can directly consume them from `@/visualization`.
 
 ---
 

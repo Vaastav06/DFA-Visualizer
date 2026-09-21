@@ -31,18 +31,18 @@ Phase 1 is complete. Everything below is Phase 2 onward - see
 
 Files: `src/compiler/`, `tests/compiler/`
 
-- [ ] Validator - every error code in `docs/ERROR_HANDLING.md`
-- [ ] Tokenizer
-- [ ] Explicit concatenation
-- [ ] Infix to postfix
-- [ ] Thompson construction
-- [ ] eps-closure and move
-- [ ] Subset construction
-- [ ] DFA minimization
-- [ ] String simulation
-- [ ] Pipeline orchestration in `compiler.ts`, including `steps`
-- [ ] Compiler tests - one file per stage
-- [ ] Language-level tests via `simulate` for every example expression
+- [x] Validator - every error code in `docs/ERROR_HANDLING.md`
+- [x] Tokenizer
+- [x] Explicit concatenation
+- [x] Infix to postfix
+- [x] Thompson construction
+- [x] eps-closure and move
+- [x] Subset construction
+- [x] DFA minimization
+- [x] String simulation
+- [x] Pipeline orchestration in `compiler.ts`, including `steps`
+- [x] Compiler tests - one file per stage
+- [x] Language-level tests via `simulate` for every example expression
 
 ## Visualization - Person 2
 

@@ -316,12 +316,18 @@ input           (a|b)*abb
 tokens          ( a | b ) * a b b
 explicit .      ( a | b ) * . a . b . b
 postfix         a b | * a . b . b .
-eps-NFA         Thompson: one accept state, linear in the regex size
-DFA             subset construction: 4 reachable states
-minimized DFA   4 states (already minimal for this language)
+eps-NFA         Thompson: 14 states, one accept state
+DFA             subset construction: 5 reachable states
+minimized DFA   4 states (two of the five were equivalent)
 simulate "abb"  accepted
 simulate "ab"   rejected
 ```
+
+The NFA has 14 states because concatenation joins two fragments with an
+eps-transition rather than merging their states. The dragon book's figure shows
+11 for the same expression because it draws the merged form; both recognise the
+same language, and the DFA that comes out of subset construction is the same
+either way.
 
 Exact state counts depend on the implementation's allocation order, which is why
 they are not asserted in the fixtures. See `TESTING_STRATEGY.md` for what to

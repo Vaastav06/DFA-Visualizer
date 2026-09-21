@@ -5,7 +5,7 @@ the cheapest way to stop two people doing the same task.
 
 Statuses: `Not Started` / `In Progress` / `Blocked` / `In Review` / `Done`
 
-Last updated: 2026-09-21 (Phase 1 handoff)
+Last updated: 2026-09-21 (Compiler Core complete)
 
 ---
 
@@ -30,17 +30,23 @@ npm run dev       ok   (serves and renders)
 
 ## Person 1 - Compiler Core
 
-Status: **Not Started**
+Status: **In Review**
 
 Branch: `feature/compiler-core`
 
 Current task:
 
--
+- Awaiting review, then merge to `main`
 
 Completed:
 
--
+- All nine pipeline stages: validation, tokenization, explicit concatenation,
+  infix-to-postfix, Thompson construction, eps-closure, subset construction,
+  minimization, simulation
+- `compileRegex()` orchestration, returning a complete `CompilationResult`
+  with run-specific step descriptions
+- 349 compiler tests, including language equivalence across the NFA, the DFA
+  and the minimized DFA for every example expression
 
 Blocked:
 
@@ -48,10 +54,10 @@ Blocked:
 
 Notes:
 
-- Start with `docs/COMPILER_PIPELINE.md`, then `docs/DATA_CONTRACTS.md`.
-- Every file in `src/compiler/` has its contract in a header comment and a stub
-  that throws. Replace the stub, keep the comment.
-- You are the critical path. Landing `compileRegex` unblocks Phase 3.
+- **`compileRegex` is ready.** Persons 2 and 3 can swap fixtures for real
+  output whenever they like; the fixtures stay valid either way.
+- No contract change was needed: `src/compiler/types.ts` is untouched.
+- `(a|b)*abb` gives a 14-state NFA, a 5-state DFA and a 4-state minimized DFA.
 
 ---
 
@@ -113,9 +119,9 @@ Notes:
 Log every change to `src/compiler/types.ts` or a public `index.ts` here, so
 nobody discovers one by way of a broken build.
 
-| Date | Who | What changed | Who it affects |
-| ---- | --- | ------------ | -------------- |
-|      |     |              |                |
+| Date       | Who      | What changed                                        | Who it affects |
+| ---------- | -------- | --------------------------------------------------- | -------------- |
+| 2026-09-21 | Person 1 | None. `types.ts` and both public APIs are unchanged | nobody         |
 
 ---
 

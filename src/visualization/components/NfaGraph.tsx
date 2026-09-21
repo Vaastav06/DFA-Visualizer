@@ -13,8 +13,25 @@ import type { NfaGraphProps } from '../types';
 import { adaptNfa } from '../adapters/nfaAdapter';
 import { AutomataGraph } from './AutomataGraph';
 
-export function NfaGraph({ nfa, height, className }: NfaGraphProps) {
+export function NfaGraph({
+  nfa,
+  highlight,
+  height,
+  className,
+  onStateClick,
+  selectedStateId,
+}: NfaGraphProps) {
   const graph = useMemo(() => (nfa ? adaptNfa(nfa) : null), [nfa]);
 
-  return <AutomataGraph kind="nfa" graph={graph} height={height} className={className} />;
+  return (
+    <AutomataGraph
+      kind="nfa"
+      graph={graph}
+      highlight={highlight}
+      height={height}
+      className={className}
+      onStateClick={onStateClick}
+      selectedStateId={selectedStateId}
+    />
+  );
 }

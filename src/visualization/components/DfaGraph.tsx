@@ -13,8 +13,26 @@ import type { DfaGraphProps } from '../types';
 import { adaptDfa } from '../adapters/dfaAdapter';
 import { AutomataGraph } from './AutomataGraph';
 
-export function DfaGraph({ dfa, kind = 'dfa', height, className }: DfaGraphProps) {
+export function DfaGraph({
+  dfa,
+  kind = 'dfa',
+  highlight,
+  height,
+  className,
+  onStateClick,
+  selectedStateId,
+}: DfaGraphProps) {
   const graph = useMemo(() => (dfa ? adaptDfa(dfa) : null), [dfa]);
 
-  return <AutomataGraph kind={kind} graph={graph} height={height} className={className} />;
+  return (
+    <AutomataGraph
+      kind={kind}
+      graph={graph}
+      highlight={highlight}
+      height={height}
+      className={className}
+      onStateClick={onStateClick}
+      selectedStateId={selectedStateId}
+    />
+  );
 }

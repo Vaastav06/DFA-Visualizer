@@ -5,7 +5,7 @@ the cheapest way to stop two people doing the same task.
 
 Statuses: `Not Started` / `In Progress` / `Blocked` / `In Review` / `Done`
 
-Last updated: 2026-09-21 (Compiler Core complete)
+Last updated: 2026-09-21 (Compiler Core merged to main)
 
 ---
 
@@ -30,13 +30,13 @@ npm run dev       ok   (serves and renders)
 
 ## Person 1 - Compiler Core
 
-Status: **In Review**
+Status: **Done** - merged to `main` in PR #1 (`27a636d`)
 
-Branch: `feature/compiler-core`
+Branch: `feature/compiler-core` (kept for follow-up work)
 
 Current task:
 
-- Awaiting review, then merge to `main`
+- None. Available to help with Phase 3 integration.
 
 Completed:
 
@@ -45,7 +45,7 @@ Completed:
   minimization, simulation
 - `compileRegex()` orchestration, returning a complete `CompilationResult`
   with run-specific step descriptions
-- 349 compiler tests, including language equivalence across the NFA, the DFA
+- 417 compiler tests, including language equivalence across the NFA, the DFA
   and the minimized DFA for every example expression
 
 Blocked:
@@ -54,18 +54,22 @@ Blocked:
 
 Notes:
 
-- **`compileRegex` is ready.** Persons 2 and 3 can swap fixtures for real
-  output whenever they like; the fixtures stay valid either way.
-- No contract change was needed: `src/compiler/types.ts` is untouched.
+- **`compileRegex()` and `simulate()` are on `main`.** Persons 2 and 3 can swap
+  fixtures for real output whenever they like; the fixtures stay valid either
+  way, so there is no rush and no breakage.
+- No contract change was needed: `src/compiler/types.ts` and both public
+  `index.ts` files are untouched.
 - `(a|b)*abb` gives a 14-state NFA, a 5-state DFA and a 4-state minimized DFA.
+- Algorithm choices are recorded in `docs/DECISIONS.md` (D-015 covers
+  minimization); `docs/COMPILER_PIPELINE.md` matches the implementation.
 
 ---
 
 ## Person 2 - Visualization
 
-Status: **Not Started**
+Status: **In Progress**
 
-Branch: `feature/visualization`
+Branch: `feature/visualization` (5 commits pushed; fill in the detail below)
 
 Current task:
 
@@ -85,6 +89,10 @@ Notes:
 - Build against `tests/fixtures/mockAutomata.ts`. Do not wait for Person 1 and
   do not call the compiler.
 - Adapters first - they are pure functions and easy to test.
+- **Heads-up:** this branch was created before the compiler merged, so its
+  merge-base is the foundation commit. Nothing is broken - the fixtures did not
+  change - but pick up the new `main` before integration:
+  `git pull origin main --rebase`.
 
 ---
 

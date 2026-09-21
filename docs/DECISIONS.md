@@ -263,3 +263,43 @@ cause.
 the wrong place to debug an ecosystem that has not caught up.
 
 **Consequence** Revisit only if a dependency requires 19.
+
+---
+
+## D-015 - Moore refinement, with dead-state removal, for minimization
+
+**Status** Accepted
+
+**Decision** `minimizeDfa` prunes unreachable states, then dead states (those
+from which no accepting state is reachable), then refines the remaining states
+with Moore's partition refinement. A missing transition gets its own signature
+marker during refinement rather than being ignored.
+
+**Alternatives** Hopcroft's algorithm; the table-filling method; refining
+without pruning dead states first.
+
+**Why Moore** All three give the same partition. Moore's is the one whose code
+reads like its description - "split a block whenever its members disagree about
+which block a symbol leads to, repeat until nothing splits" - which matters more
+than its worse asymptotic bound at the scale of a course project. Hopcroft is
+faster and considerably harder to read; the table-filling method is equivalent
+but more bookkeeping for the same result.
+
+**Why prune dead states** Under D-006 the DFA is partial, so a state whose
+language is empty is redundant: deleting it and the transitions into it leaves
+the language unchanged, because a missing transition already means "reject". A
+minimization that kept such a state would not be returning the minimal automaton.
+
+Subset construction never produces one, since every state of a Thompson NFA can
+reach its accept state. But `minimizeDfa` takes any `DFA`, including hand-built
+ones from tests and any future editor feature, and it should be correct for
+those too.
+
+**Why the signature marker** With no dead state in the data, "state p has no
+transition on a" is a real distinguishing property: it means reading `a` from
+`p` rejects. Ignoring undefined symbols during refinement would merge states
+that accept different languages.
+
+**Consequence** If pruning removes every state, the language is empty and the
+result is a single non-accepting state with no transitions - the minimal
+automaton for that language. Only reachable by hand-built input.

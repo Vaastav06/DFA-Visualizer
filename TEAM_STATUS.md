@@ -40,24 +40,29 @@ Current task:
 
 Completed:
 
-- All nine pipeline stages: validation, tokenization, explicit concatenation,
-  infix-to-postfix, Thompson construction, eps-closure, subset construction,
-  minimization, simulation
-- `compileRegex()` orchestration, returning a complete `CompilationResult`
-  with run-specific step descriptions
-- 349 compiler tests, including language equivalence across the NFA, the DFA
-  and the minimized DFA for every example expression
+- Complete direct Regular Expression → DFA construction pipeline: validation, tokenization,
+  explicit concatenation, infix-to-postfix, augmented syntax tree with end-marker `#`,
+  1-based left-to-right leaf position numbering, nullable, firstpos, lastpos, followpos
+  calculation, direct DFA construction via position subsets, DFA minimization (Moore refinement
+  with dead state pruning), and string simulation with step tracking.
+- `compileRegex()` orchestration returning a complete `CompilationResult` with
+  `syntaxTree`, `positions`, `analysis`, `followpos`, `dfa`, `minimizedDfa`, and run-specific `steps`.
+- 349 tests passing across 18 test files, including Dragon Book `(a|b)*abb#` 9-component
+  verification, language equivalence across DFA and minimized DFA, and determinism checks.
+- Zero Thompson construction, ε-NFA, ε-closure, or subset construction logic in active compiler.
 
 Blocked:
 
--
+- None
 
 Notes:
 
-- **`compileRegex` is ready.** Persons 2 and 3 can swap fixtures for real
-  output whenever they like; the fixtures stay valid either way.
-- No contract change was needed: `src/compiler/types.ts` is untouched.
-- `(a|b)*abb` gives a 14-state NFA, a 5-state DFA and a 4-state minimized DFA.
+- **`compileRegex` is ready.** Direct RE → DFA construction produces clean minimal DFAs directly
+  from the syntax tree without generating an intermediate ε-NFA.
+- `DFAState.positions` is the canonical representation. `nfaStates` is preserved as an identical
+  alias for backwards compatibility with visualization and UI components.
+- `(a|b)*abb` directly produces a 4-state DFA (q0={1,2,3}, q1={1,2,3,4}, q2={1,2,3,5}, q3={1,2,3,6}
+  accepting), which is already minimal.
 
 ---
 
@@ -119,9 +124,10 @@ Notes:
 Log every change to `src/compiler/types.ts` or a public `index.ts` here, so
 nobody discovers one by way of a broken build.
 
-| Date       | Who      | What changed                                        | Who it affects |
-| ---------- | -------- | --------------------------------------------------- | -------------- |
-| 2026-09-21 | Person 1 | None. `types.ts` and both public APIs are unchanged | nobody         |
+| Date       | Who      | What changed                                                                                                                                                                                            | Who it affects |
+| ---------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
+| 2026-09-21 | Person 1 | Initial setup                                                                                                                                                                                           | nobody         |
+| 2026-09-22 | Person 1 | Added `DFAState.positions` (canonical) with `nfaStates` compatibility alias; added `syntaxTree`, `positions`, `analysis`, `followpos` to `CompilationResult`; marked `nfa?: NFA` optional/deprecated. | non-breaking; enables direct AST and followpos visualization for Person 2 & 3 |
 
 ---
 

@@ -75,13 +75,14 @@ RegexInput  ──onSubmit──▶  useCompiler().compile()
                                     │
                     ┌───────────────┴───────────────┐
                     │      CompilationResult         │
-                    │  tokens, postfix, nfa, dfa,    │
-                    │  minimizedDfa, steps           │
+                    │  tokens, postfix, syntaxTree,  │
+                    │  positions, analysis,          │
+                    │  followpos, dfa, minimizedDfa  │
                     └───────────────┬───────────────┘
                                     │
              ┌──────────────────────┼──────────────────────┐
              ▼                      ▼                      ▼
-     StepNavigation          <NfaGraph nfa=…/>      <TransitionTable dfa=…/>
+     StepNavigation         <SyntaxTreeGraph .../>   <TransitionTable dfa=…/>
       (Person 3)              <DfaGraph dfa=…/>        <DfaMapping dfa=…/>
                                 (Person 2)               (Person 3)
                                     │
@@ -110,11 +111,15 @@ src/
 │   ├── tokenizer.ts       stage 2
 │   ├── explicitConcatenation.ts   stage 3
 │   ├── infixToPostfix.ts  stage 4
-│   ├── thompson.ts        stage 5
-│   ├── epsilonClosure.ts  stage 6 (helper for stage 7)
-│   ├── subsetConstruction.ts      stage 7
-│   ├── minimizeDfa.ts     stage 8
-│   ├── simulator.ts       stage 9
+│   ├── syntaxTree.ts      stage 5 (augmented AST with end-marker #)
+│   ├── positions.ts       stage 6 (1-based leaf position numbering)
+│   ├── nullable.ts        stage 7a (nullable calculation)
+│   ├── firstpos.ts        stage 7b (firstpos calculation)
+│   ├── lastpos.ts         stage 7c (lastpos calculation)
+│   ├── followpos.ts       stage 8 (followpos calculation)
+│   ├── directDfa.ts       stage 9 (direct DFA construction)
+│   ├── minimizeDfa.ts     stage 10
+│   ├── simulator.ts       stage 11
 │   ├── compiler.ts        orchestrator
 │   └── index.ts           PUBLIC API
 │

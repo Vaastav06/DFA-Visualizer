@@ -9,11 +9,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { compileRegex, simulate, isCompilerError, PIPELINE_STEPS } from '../../src/compiler';
-import {
-  allStringsUpTo,
-  assertDfaInvariants,
-  dfaAccepts,
-} from './support/automata';
+import { allStringsUpTo, assertDfaInvariants, dfaAccepts } from './support/automata';
 
 const EXPRESSIONS = ['a', 'a|b', 'ab', 'a*', '(a|b)*', '(a|b)*abb', 'a(b|c)*', '(a|b)(c|d)'];
 
@@ -278,23 +274,29 @@ describe('explicit required strings language equivalence', () => {
     },
   ];
 
-  it.each(explicitTestCases)('$regex: direct DFA and minimized DFA have identical acceptance on required strings', ({ regex, strings }) => {
-    const { dfa, minimizedDfa } = compileRegex(regex);
-    for (const str of strings) {
-      const directVerdict = simulate(dfa, str).accepted;
-      const minVerdict = simulate(minimizedDfa, str).accepted;
-      expect({ str, minVerdict }).toEqual({ str, minVerdict: directVerdict });
+  it.each(explicitTestCases)(
+    '$regex: direct DFA and minimized DFA have identical acceptance on required strings',
+    ({ regex, strings }) => {
+      const { dfa, minimizedDfa } = compileRegex(regex);
+      for (const str of strings) {
+        const directVerdict = simulate(dfa, str).accepted;
+        const minVerdict = simulate(minimizedDfa, str).accepted;
+        expect({ str, minVerdict }).toEqual({ str, minVerdict: directVerdict });
+      }
     }
-  });
+  );
 });
 
 describe('determinism', () => {
-  it.each(EXPRESSIONS)('%s compiles identically every time (deep equality and JSON stringify)', (regex) => {
-    const run1 = compileRegex(regex);
-    const run2 = compileRegex(regex);
-    expect(run1).toEqual(run2);
-    expect(JSON.stringify(run1)).toBe(JSON.stringify(run2));
-  });
+  it.each(EXPRESSIONS)(
+    '%s compiles identically every time (deep equality and JSON stringify)',
+    (regex) => {
+      const run1 = compileRegex(regex);
+      const run2 = compileRegex(regex);
+      expect(run1).toEqual(run2);
+      expect(JSON.stringify(run1)).toBe(JSON.stringify(run2));
+    }
+  );
 
   it('does not depend on what was compiled before', () => {
     const first = compileRegex('(a|b)*abb');

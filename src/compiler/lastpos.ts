@@ -40,7 +40,9 @@ export function calculateLastpos(node: SyntaxNode): number[] {
     case 'concat': {
       const leftLast = node.left ? calculateLastpos(node.left) : [];
       const rightLast = node.right ? calculateLastpos(node.right) : [];
-      const rightNullable = node.right ? (node.right.nullable ?? calculateNullable(node.right)) : false;
+      const rightNullable = node.right
+        ? (node.right.nullable ?? calculateNullable(node.right))
+        : false;
 
       node.lastpos = rightNullable ? unionPositions(leftLast, rightLast) : [...rightLast];
       break;

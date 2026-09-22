@@ -317,6 +317,7 @@ rather than Thompson's construction + subset construction.
 **Alternatives** Thompson's ε-NFA construction followed by powerset/subset construction.
 
 **Why**
+
 1. **Instructional focus:** Direct RE → DFA construction is the standard syntax-tree method taught
    in Compiler Design courses. It provides direct, inspectable intermediate tables (nullable,
    firstpos, lastpos, followpos) that cleanly demonstrate compiler frontend concepts.
@@ -327,10 +328,10 @@ rather than Thompson's construction + subset construction.
    assigned to the unique end-marker `#` is contained in the state's position set.
 
 **Consequence**
+
 - Obsolete Thompson construction, ε-NFA, ε-closure, and subset construction files have been removed.
 - `DFAState.positions` is the canonical, authoritative representation of a DFA state.
 - `DFAState.nfaStates` is preserved as a deprecated alias pointing directly to `positions` to ensure
   backward compatibility with existing visualization adapters and fixtures.
 - The compilation result exposes `syntaxTree`, `positions`, `analysis`, and `followpos` for the UI
   to render rich intermediate syntax analysis steps.
-

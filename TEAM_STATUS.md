@@ -124,9 +124,9 @@ Notes:
 Log every change to `src/compiler/types.ts` or a public `index.ts` here, so
 nobody discovers one by way of a broken build.
 
-| Date       | Who      | What changed                                                                                                                                                                                            | Who it affects |
-| ---------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
-| 2026-09-21 | Person 1 | Initial setup                                                                                                                                                                                           | nobody         |
+| Date       | Who      | What changed                                                                                                                                                                                          | Who it affects                                                                |
+| ---------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| 2026-09-21 | Person 1 | Initial setup                                                                                                                                                                                         | nobody                                                                        |
 | 2026-09-22 | Person 1 | Added `DFAState.positions` (canonical) with `nfaStates` compatibility alias; added `syntaxTree`, `positions`, `analysis`, `followpos` to `CompilationResult`; marked `nfa?: NFA` optional/deprecated. | non-breaking; enables direct AST and followpos visualization for Person 2 & 3 |
 
 ---

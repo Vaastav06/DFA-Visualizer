@@ -26,7 +26,11 @@ export { calculateNullable } from './nullable';
 export { calculateFirstpos, unionPositions } from './firstpos';
 export { calculateLastpos } from './lastpos';
 export { calculateFollowpos } from './followpos';
-export { constructDirectDFA, constructDirectDFA as constructDirectDfa, positionSetKey } from './directDfa';
+export {
+  constructDirectDFA,
+  constructDirectDFA as constructDirectDfa,
+  positionSetKey,
+} from './directDfa';
 export { minimizeDfa, minimizeDfa as minimizeDFA } from './minimizeDfa';
 
 /* ---- string simulation ---- */

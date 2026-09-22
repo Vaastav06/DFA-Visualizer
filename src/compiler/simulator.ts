@@ -78,4 +78,3 @@ export function simulate(dfa: DFA, input: string): SimulationResult {
 
 /** Alias for {@link simulate}. */
 export const simulateDFA = simulate;
-

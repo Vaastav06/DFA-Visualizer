@@ -22,9 +22,11 @@ import { StepNavigation } from '../components/StepNavigation';
 import { StepContent } from '../components/StepContent';
 import { AlgorithmExplanation } from '../components/AlgorithmExplanation';
 import { TokenList } from '../components/TokenList';
-import { NfaGraph } from '../visualization';
 import { DfaGraph } from '../visualization';
-import { NfaTable } from '../components/NfaTable';
+import { SyntaxTreeGraph } from '../visualization';
+import { FollowposTable } from '../visualization';
+import { PositionTable } from '../visualization';
+import { AstAnalysisTable } from '../visualization';
 import { TransitionTable } from '../components/TransitionTable';
 import { DfaMapping } from '../components/DfaMapping';
 import { StringSimulator } from '../components/StringSimulator';
@@ -41,11 +43,13 @@ function explanationFor(stepId: CompilationStepId): string {
     case 'concatenation':
       return 'Adjacent operands are joined with an explicit concatenation operator so the parser sees every application.';
     case 'postfix':
-      return 'The shunting-yard algorithm rewrites the expression into postfix form, removing parentheses while preserving order of operations.';
-    case 'nfa':
-      return "Thompson's construction builds one fragment per operator and stitches them with ε-transitions into a single NFA.";
+      return 'The shunting-yard algorithm rewrites the expression into postfix form, removing parentheses while preserving order of operations, so the parser can build a syntax tree.';
+    case 'syntaxTree':
+      return 'The expression is augmented with end-marker "#" and parsed into a syntax tree. Leaf positions are assigned left-to-right, and each node receives nullable, firstpos, and lastpos analysis.';
+    case 'followpos':
+      return 'The followpos table is computed from the syntax tree. For each position p with symbol s, followpos(p) contains the set of positions that can immediately follow p in some accepted string.';
     case 'dfa':
-      return 'Subset construction powersets the NFA states: each ε-closed set becomes one DFA state, and transitions are made deterministic.';
+      return 'Direct DFA construction creates states from syntax-tree position sets using the followpos table. Each DFA state represents a unique subset of positions, and transitions are determined by which positions follow on each input symbol.';
     case 'minimized':
       return 'States are merged when no input string can tell them apart, leaving the smallest equivalent DFA.';
     case 'simulation':
@@ -99,12 +103,14 @@ export function HomePage() {
               {codeBlock(result.postfix)}
             </>
           )}
-          {activeStep === 'nfa' && (
-            <div className="stage-graph">
-              <NfaGraph nfa={result.nfa} />
-              <NfaTable nfa={result.nfa} />
-            </div>
+          {activeStep === 'syntaxTree' && (
+            <>
+              <SyntaxTreeGraph tree={result.syntaxTree} />
+              <PositionTable positions={result.positions} />
+              <AstAnalysisTable tree={result.syntaxTree} />
+            </>
           )}
+          {activeStep === 'followpos' && <FollowposTable followpos={result.followpos} />}
           {activeStep === 'dfa' && (
             <div className="stage-graph">
               <DfaGraph dfa={result.dfa} />

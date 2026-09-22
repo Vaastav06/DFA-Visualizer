@@ -189,9 +189,15 @@ export function minimizeDfa(dfa: DFA): DFA {
   // single non-accepting state with no transitions.
   if (!survivors.includes(dfa.startState)) {
     const start = stateById.get(dfa.startState);
-    const startPositions = start?.positions ? [...start.positions] : (start?.nfaStates ? [...start.nfaStates] : []);
+    const startPositions = start?.positions
+      ? [...start.positions]
+      : start?.nfaStates
+        ? [...start.nfaStates]
+        : [];
     return {
-      states: [{ id: 0, positions: startPositions, nfaStates: [...startPositions], isAccepting: false }],
+      states: [
+        { id: 0, positions: startPositions, nfaStates: [...startPositions], isAccepting: false },
+      ],
       alphabet: [...dfa.alphabet],
       startState: 0,
       acceptStates: [],

@@ -58,20 +58,20 @@ the step navigation against this; Person 1 returns run-specific versions in
 
 ### Pipeline Stage Functions (Exported for Testing and Visual Inspection)
 
-| Function | Stage | Description |
-| -------- | ----- | ----------- |
-| `validate(regex)` | 1 | Syntactic validation against allowed language |
-| `tokenize(regex)` | 2 | Character-by-character tokenization |
-| `insertExplicitConcatenation(tokens)` | 3 | Inserts explicit `.` concatenation operators |
-| `infixToPostfix(tokens)` | 4 | Shunting-yard conversion to postfix |
-| `buildSyntaxTree(postfix)` | 5 | Builds augmented AST with end-marker `#` |
-| `assignPositions(root)` | 6 | Left-to-right 1-based leaf position numbering |
-| `calculateNullable(node)` | 7a | Computes nullable boolean attribute |
-| `calculateFirstpos(node, analysis)` | 7b | Computes firstpos position set |
-| `calculateLastpos(node, analysis)` | 7c | Computes lastpos position set |
-| `calculateFollowpos(root, analysis, posCount)` | 8 | Computes followpos table |
-| `constructDirectDFA(root, analysis, followpos, ...)` | 9 | Constructs direct DFA from position sets |
-| `minimizeDfa(dfa)` | 10 | Moore partition refinement with dead state pruning |
+| Function                                             | Stage | Description                                        |
+| ---------------------------------------------------- | ----- | -------------------------------------------------- |
+| `validate(regex)`                                    | 1     | Syntactic validation against allowed language      |
+| `tokenize(regex)`                                    | 2     | Character-by-character tokenization                |
+| `insertExplicitConcatenation(tokens)`                | 3     | Inserts explicit `.` concatenation operators       |
+| `infixToPostfix(tokens)`                             | 4     | Shunting-yard conversion to postfix                |
+| `buildSyntaxTree(postfix)`                           | 5     | Builds augmented AST with end-marker `#`           |
+| `assignPositions(root)`                              | 6     | Left-to-right 1-based leaf position numbering      |
+| `calculateNullable(node)`                            | 7a    | Computes nullable boolean attribute                |
+| `calculateFirstpos(node, analysis)`                  | 7b    | Computes firstpos position set                     |
+| `calculateLastpos(node, analysis)`                   | 7c    | Computes lastpos position set                      |
+| `calculateFollowpos(root, analysis, posCount)`       | 8     | Computes followpos table                           |
+| `constructDirectDFA(root, analysis, followpos, ...)` | 9     | Constructs direct DFA from position sets           |
+| `minimizeDfa(dfa)`                                   | 10    | Moore partition refinement with dead state pruning |
 
 ### Errors
 

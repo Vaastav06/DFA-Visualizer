@@ -28,6 +28,7 @@ Phase 1 is complete. Everything below is Phase 2 onward - see
 ---
 
 ## Compiler Core - Person 1
+
 ### Direct Regular Expression → DFA Construction Pipeline
 
 Files: `src/compiler/`, `tests/compiler/`

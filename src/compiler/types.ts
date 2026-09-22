@@ -257,4 +257,3 @@ export interface SimulationResult {
   /** Populated when the run stopped early (symbol outside the alphabet, or no transition). */
   rejectedAt?: number;
 }
-

@@ -143,9 +143,11 @@ Precedence, highest binds tightest:
 
 Builds an explicit abstract syntax tree from the postfix tokens and augments it
 with the unique internal end-marker `#`:
+
 ```text
 CONCAT(r, #)
 ```
+
 The `#` symbol receives its own leaf position and determines DFA acceptance.
 
 ---
@@ -165,6 +167,7 @@ assigning 1-based integer positions (`1, 2, 3, ...`). Returns the position table
 ## Stage 7 - Nullable, Firstpos, Lastpos Analysis
 
 **Files**
+
 - `src/compiler/nullable.ts` - `calculateNullable(node: SyntaxNode): boolean`
 - `src/compiler/firstpos.ts` - `calculateFirstpos(node: SyntaxNode): number[]`
 - `src/compiler/lastpos.ts` - `calculateLastpos(node: SyntaxNode): number[]`
@@ -172,18 +175,21 @@ assigning 1-based integer positions (`1, 2, 3, ...`). Returns the position table
 Computes the standard compiler design attributes for every node in the tree:
 
 ### Nullable
+
 - `nullable(symbol)` = `false`
 - `nullable(A | B)` = `nullable(A) || nullable(B)`
 - `nullable(A . B)` = `nullable(A) && nullable(B)`
 - `nullable(A*)` = `true`
 
 ### Firstpos
+
 - `firstpos(pos)` = `{ pos }`
 - `firstpos(A | B)` = `firstpos(A) ∪ firstpos(B)`
 - `firstpos(A . B)` = `nullable(A) ? (firstpos(A) ∪ firstpos(B)) : firstpos(A)`
 - `firstpos(A*)` = `firstpos(A)`
 
 ### Lastpos
+
 - `lastpos(pos)` = `{ pos }`
 - `lastpos(A | B)` = `lastpos(A) ∪ lastpos(B)`
 - `lastpos(A . B)` = `nullable(B) ? (lastpos(A) ∪ lastpos(B)) : lastpos(B)`
@@ -200,6 +206,7 @@ All sets are represented as canonical, sorted, duplicate-free integer arrays.
 **Signature** `calculateFollowpos(root: SyntaxNode, positions: PositionInfo[]): FollowPosEntry[]`
 
 Applies the two standard followpos rules:
+
 1. **Concatenation rule**: for each `concat(A, B)`, for every `i ∈ lastpos(A)`, add `firstpos(B)` to `followpos(i)`.
 2. **Kleene star rule**: for each `star(A)`, for every `i ∈ lastpos(A)`, add `firstpos(A)` to `followpos(i)`.
 
@@ -212,6 +219,7 @@ Applies the two standard followpos rules:
 **Signature** `constructDirectDFA(root: SyntaxNode, alphabet: string[], followpos: FollowPosEntry[], endMarkerPosition: number): DFA`
 
 Constructs the DFA directly from position sets without any intermediate NFA:
+
 1. Start state: `D0 = firstpos(root)`.
 2. For each unmarked DFA state `S` and each input symbol `a ∈ alphabet`:
    ```text
@@ -232,6 +240,7 @@ Constructs the DFA directly from position sets without any intermediate NFA:
 **File** `src/compiler/minimizeDfa.ts` - **Signature** `minimizeDfa(dfa: DFA): DFA`
 
 Produces the smallest DFA recognising the same language:
+
 1. Remove states unreachable from the start state.
 2. Remove dead states - those from which no accepting state is reachable.
 3. Partition the rest into accepting and non-accepting blocks.
@@ -248,6 +257,7 @@ Produces the smallest DFA recognising the same language:
 **Signature** `simulate(dfa: DFA, input: string): SimulationResult`
 
 Runs a string through the DFA and records the full trace:
+
 - `path[0]` is always `dfa.startState`.
 - Halts with controlled error and `consumed` character count if an unknown symbol or missing transition occurs.
 - Acceptance requires the entire string consumed and current state in `dfa.acceptStates`.

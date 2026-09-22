@@ -131,7 +131,12 @@ function handBuilt(
   alphabet: string[]
 ): DFA {
   return {
-    states: states.map(([id, isAccepting]) => ({ id, positions: [id], nfaStates: [id], isAccepting })),
+    states: states.map(([id, isAccepting]) => ({
+      id,
+      positions: [id],
+      nfaStates: [id],
+      isAccepting,
+    })),
     alphabet,
     startState: states[0][0],
     acceptStates: states.filter(([, isAccepting]) => isAccepting).map(([id]) => id),

@@ -2,7 +2,6 @@
  * Generic transition table: rows are states, columns are alphabet symbols.
  *
  * OWNER: Person 3.
- * TODO(Person 3): implement the body from the DFA's transitions.
  *
  * Display rules:
  *   state ids render as `q0`, `q1`, ...    (STATE ID CONTRACT)
@@ -10,6 +9,7 @@
  */
 
 import type { DFA } from '../compiler';
+import { formatStateId } from '../hooks/useCompiler';
 
 interface TransitionTableProps {
   dfa: DFA;
@@ -18,6 +18,12 @@ interface TransitionTableProps {
 }
 
 export function TransitionTable({ dfa, caption = 'DFA transition table' }: TransitionTableProps) {
+  const acceptSet = new Set(dfa.acceptStates);
+
+  function targetFor(from: number, symbol: string): number | undefined {
+    return dfa.transitions.find((t) => t.from === from && t.symbol === symbol)?.to;
+  }
+
   return (
     <table className="transition-table">
       <caption>{caption}</caption>
@@ -31,7 +37,31 @@ export function TransitionTable({ dfa, caption = 'DFA transition table' }: Trans
           ))}
         </tr>
       </thead>
-      <tbody>{/* TODO(Person 3): one row per dfa.states entry. */}</tbody>
+      <tbody>
+        {dfa.states.map((state) => (
+          <tr key={state.id}>
+            <th scope="row">
+              {formatStateId(state.id)}
+              {state.id === dfa.startState && <span className="state-badge">start</span>}
+              {(state.isAccepting || acceptSet.has(state.id)) && (
+                <span className="state-badge">accept</span>
+              )}
+            </th>
+            {dfa.alphabet.map((symbol) => {
+              const target = targetFor(state.id, symbol);
+              return (
+                <td key={symbol}>
+                  {target === undefined ? (
+                    <span className="empty-cell">—</span>
+                  ) : (
+                    formatStateId(target)
+                  )}
+                </td>
+              );
+            })}
+          </tr>
+        ))}
+      </tbody>
     </table>
   );
 }

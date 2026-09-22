@@ -1,17 +1,9 @@
-/**
- * Tabs/steps for moving through the compilation pipeline.
- *
- * OWNER: Person 3.
- * TODO(Person 3): full keyboard support (arrow keys, Home/End) per the
- * tablist pattern in docs/UI_UX_SPEC.md.
- */
-
-import type { CompilationStep } from '../compiler';
+import type { CompilationStep, CompilationStepId } from '../compiler';
 
 interface StepNavigationProps {
   steps: readonly CompilationStep[];
-  activeStepId: string;
-  onSelect?: (stepId: string) => void;
+  activeStepId: CompilationStepId;
+  onSelect?: (stepId: CompilationStepId) => void;
 }
 
 export function StepNavigation({ steps, activeStepId, onSelect }: StepNavigationProps) {
@@ -27,7 +19,7 @@ export function StepNavigation({ steps, activeStepId, onSelect }: StepNavigation
               aria-selected={step.id === activeStepId}
               aria-controls={`step-panel-${step.id}`}
               className={`step-nav__item${step.id === activeStepId ? ' step-nav__item--active' : ''}`}
-              onClick={() => onSelect?.(step.id)}
+              onClick={() => onSelect?.(step.id as CompilationStepId)}
             >
               <span className="step-nav__index">{index + 1}</span>
               <span className="step-nav__title">{step.title}</span>

@@ -16,8 +16,15 @@
  * See docs/COMPILER_PIPELINE.md.
  */
 
-import { InternalCompilerError } from './errors';
+import { InternalCompilerError, CompilerError } from './errors';
 import type { CompilationResult, CompilationStep } from './types';
+import { validate } from './validator';
+import { tokenize } from './tokenizer';
+import { insertExplicitConcatenation } from './explicitConcatenation';
+import { infixToPostfix } from './infixToPostfix';
+import { thompsonConstruction } from './thompson';
+import { subsetConstruction } from './subsetConstruction';
+import { minimizeDfa } from './minimizeDfa';
 
 /**
  * Compiles a regular expression into tokens, postfix, an epsilon-NFA, a DFA and
@@ -26,10 +33,93 @@ import type { CompilationResult, CompilationStep } from './types';
  * @throws {CompilerError} for invalid input or an internal failure.
  */
 export function compileRegex(regex: string): CompilationResult {
-  throw new InternalCompilerError(
-    'The compiler pipeline is not implemented yet.',
-    `TODO(Person 1): implement compileRegex() in src/compiler/compiler.ts. Received: ${JSON.stringify(regex)}`
-  );
+  try {
+    // Stage 1: Validation
+    validate(regex);
+
+    // Stage 2: Tokenization
+    const tokens = tokenize(regex);
+
+    // Stage 3: Explicit concatenation
+    const explicitConcatTokens = insertExplicitConcatenation(tokens);
+    const explicitConcatenation = explicitConcatTokens.join('');
+
+    // Stage 4: Infix to postfix
+    const postfixTokens = infixToPostfix(explicitConcatTokens);
+    const postfix = postfixTokens.join('');
+
+    // Stage 5: Thompson's construction (NFA)
+    const nfa = thompsonConstruction(postfixTokens);
+
+    // Stage 6 & 7: Subset construction (DFA)
+    const dfa = subsetConstruction(nfa);
+
+    // Stage 8: DFA minimization
+    const minimizedDfa = minimizeDfa(dfa);
+
+    // Build step explanations with actual data
+    const steps: CompilationStep[] = [
+      {
+        id: 'input',
+        title: 'Regular Expression',
+        description: 'The expression as entered, after validation of its syntax.',
+      },
+      {
+        id: 'tokens',
+        title: 'Tokenization',
+        description: `The expression split into ${tokens.length} token(s): ${tokens.join(', ')}.`,
+      },
+      {
+        id: 'concatenation',
+        title: 'Explicit Concatenation',
+        description: `Implicit concatenation made explicit with "." operator: ${explicitConcatenation}.`,
+      },
+      {
+        id: 'postfix',
+        title: 'Postfix Notation',
+        description: `Shunting-yard produced postfix form: ${postfix}.`,
+      },
+      {
+        id: 'nfa',
+        title: 'ε-NFA (Thompson)',
+        description: `Thompson's construction built an NFA with ${nfa.states.length} states and ${nfa.transitions.length} transitions (${nfa.alphabet.length} alphabet symbols).`,
+      },
+      {
+        id: 'dfa',
+        title: 'DFA (Subset Construction)',
+        description: `Subset construction produced a DFA with ${dfa.states.length} states and ${dfa.transitions.length} transitions.`,
+      },
+      {
+        id: 'minimized',
+        title: 'Minimized DFA',
+        description: `Minimization reduced the DFA to ${minimizedDfa.states.length} states and ${minimizedDfa.transitions.length} transitions.`,
+      },
+      {
+        id: 'simulation',
+        title: 'String Simulation',
+        description: 'Run an input string through the DFA and watch it accept or reject.',
+      },
+    ];
+
+    return {
+      input: regex,
+      tokens,
+      explicitConcatenation,
+      postfix,
+      nfa,
+      dfa,
+      minimizedDfa,
+      steps,
+    };
+  } catch (error) {
+    if (error instanceof CompilerError) {
+      throw error;
+    }
+    throw new InternalCompilerError(
+      'An unexpected error occurred during compilation.',
+      `Original error: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
 }
 
 /**

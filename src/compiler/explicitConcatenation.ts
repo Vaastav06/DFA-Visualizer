@@ -16,15 +16,45 @@
  * see docs/REGEX_SPECIFICATION.md.
  */
 
-import { InternalCompilerError } from './errors';
-
 /** The internal explicit-concatenation operator. */
 export const CONCAT_OPERATOR = '.';
 
+function canFollowConcat(token: string): boolean {
+  return token === ')' || token === '*' || isLiteral(token);
+}
+
+function canPrecedeConcat(token: string): boolean {
+  return token === '(' || isLiteral(token);
+}
+
 /** Returns the token list with explicit `.` operators inserted. */
 export function insertExplicitConcatenation(tokens: string[]): string[] {
-  throw new InternalCompilerError(
-    'Explicit concatenation is not implemented yet.',
-    `TODO(Person 1): implement insertExplicitConcatenation() in src/compiler/explicitConcatenation.ts. Received ${tokens.length} tokens.`
+  if (tokens.length === 0) {
+    return [];
+  }
+
+  const result: string[] = [tokens[0]];
+
+  for (let i = 1; i < tokens.length; i++) {
+    const prev = tokens[i - 1];
+    const curr = tokens[i];
+
+    if (canFollowConcat(prev) && canPrecedeConcat(curr)) {
+      result.push(CONCAT_OPERATOR);
+    }
+    result.push(curr);
+  }
+
+  return result;
+}
+
+function isLiteral(token: string): boolean {
+  return (
+    token.length === 1 &&
+    token !== '|' &&
+    token !== '*' &&
+    token !== '.' &&
+    token !== '(' &&
+    token !== ')'
   );
 }

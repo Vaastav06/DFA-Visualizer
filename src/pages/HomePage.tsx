@@ -2,7 +2,6 @@
  * The single page of the application.
  *
  * OWNER: Person 3.
- * TODO(Person 3): build the real layout —
  *
  *   RegexInput + ExampleExpressions
  *        -> compile() from useAppContext()
@@ -12,10 +11,6 @@
  *                     | <DfaGraph /> + <TransitionTable /> + <DfaMapping />
  *                     | <DfaGraph kind="minimized-dfa" />
  *                     | <StringSimulator />
- *
- * Until the compiler exists, `compile()` throws a "not implemented" error which
- * the hook turns into a message in <ErrorDisplay /> — that is expected, and it
- * proves the wiring is real.
  */
 
 import { ExampleExpressions } from '../components/ExampleExpressions';
@@ -23,10 +18,90 @@ import { RegexInput } from '../components/RegexInput';
 import { ErrorDisplay } from '../components/ErrorDisplay';
 import { LoadingState } from '../components/LoadingState';
 import { EmptyState } from '../components/EmptyState';
+import { StepNavigation } from '../components/StepNavigation';
+import { StepContent } from '../components/StepContent';
+import { TransitionTable } from '../components/TransitionTable';
+import { NfaTable } from '../components/NfaTable';
+import { DfaMapping } from '../components/DfaMapping';
+import { StringSimulator } from '../components/StringSimulator';
+import { NfaGraph } from '../visualization';
+import { DfaGraph } from '../visualization';
 import { useAppContext } from '../context/AppContext';
+import { PIPELINE_STEPS } from '../compiler';
+import type { CompilationStepId } from '../compiler';
 
 export function HomePage() {
-  const { expression, setExpression, compile, reset, result, error, isCompiling } = useAppContext();
+  const { expression, setExpression, compile, reset, result, error, isCompiling, activeStep, setActiveStep } = useAppContext();
+
+  const handleStepSelect = (stepId: CompilationStepId) => {
+    setActiveStep(stepId);
+  };
+
+  const renderStepContent = () => {
+    if (!result) return null;
+
+    switch (activeStep) {
+      case 'input':
+        return (
+          <StepContent step={PIPELINE_STEPS[0]}>
+            <pre className="code-block"><code>{result.input}</code></pre>
+          </StepContent>
+        );
+      case 'tokens':
+        return (
+          <StepContent step={PIPELINE_STEPS[1]}>
+            <ul className="token-list">
+              {result.tokens.map((token, i) => (
+                <li key={i}><code>{token}</code></li>
+              ))}
+            </ul>
+          </StepContent>
+        );
+      case 'concatenation':
+        return (
+          <StepContent step={PIPELINE_STEPS[2]}>
+            <pre className="code-block"><code>{result.explicitConcatenation}</code></pre>
+          </StepContent>
+        );
+      case 'postfix':
+        return (
+          <StepContent step={PIPELINE_STEPS[3]}>
+            <pre className="code-block"><code>{result.postfix}</code></pre>
+          </StepContent>
+        );
+      case 'nfa':
+        return (
+          <StepContent step={PIPELINE_STEPS[4]}>
+            <NfaGraph nfa={result.nfa} height={400} />
+            <NfaTable nfa={result.nfa} />
+          </StepContent>
+        );
+      case 'dfa':
+        return (
+          <StepContent step={PIPELINE_STEPS[5]}>
+            <DfaGraph dfa={result.dfa} height={400} />
+            <TransitionTable dfa={result.dfa} />
+            <DfaMapping dfa={result.dfa} />
+          </StepContent>
+        );
+      case 'minimized':
+        return (
+          <StepContent step={PIPELINE_STEPS[6]}>
+            <DfaGraph dfa={result.minimizedDfa} kind="minimized-dfa" height={400} />
+            <TransitionTable dfa={result.minimizedDfa} caption="Minimized DFA transition table" />
+            <DfaMapping dfa={result.minimizedDfa} caption="Minimized DFA state mapping" />
+          </StepContent>
+        );
+      case 'simulation':
+        return (
+          <StepContent step={PIPELINE_STEPS[7]}>
+            <StringSimulator dfa={result.minimizedDfa} />
+          </StepContent>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <main className="page">
@@ -54,10 +129,18 @@ export function HomePage() {
         {isCompiling && <LoadingState />}
         {!isCompiling && result === null && error === null && <EmptyState />}
         {!isCompiling && result !== null && (
-          /* TODO(Person 3): StepNavigation + StepContent go here. */
-          <p className="page__placeholder">
-            Compiled <code>{result.input}</code> — step views are not built yet.
-          </p>
+          <div className="results-layout">
+            <aside className="results__sidebar">
+              <StepNavigation
+                steps={PIPELINE_STEPS}
+                activeStepId={activeStep}
+                onSelect={handleStepSelect}
+              />
+            </aside>
+            <div className="results__main">
+              {renderStepContent()}
+            </div>
+          </div>
         )}
       </section>
 

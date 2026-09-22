@@ -14,13 +14,70 @@
  *    docs/COMPILER_PIPELINE.md); a missing transition means "reject"
  */
 
-import { InternalCompilerError } from './errors';
-import type { DFA, NFA } from './types';
+import type { DFA, DFAState, NFA, Transition } from './types';
+import { stateSetKey, epsilonClosure, move } from './epsilonClosure';
 
 /** Converts an epsilon-NFA into an equivalent DFA. */
 export function subsetConstruction(nfa: NFA): DFA {
-  throw new InternalCompilerError(
-    'Subset construction is not implemented yet.',
-    `TODO(Person 1): implement subsetConstruction() in src/compiler/subsetConstruction.ts. NFA has ${nfa.states.length} states.`
-  );
+  const dfaStates: DFAState[] = [];
+  const dfaTransitions: Transition[] = [];
+  const stateMap = new Map<string, number>(); // key -> dfa state id
+
+  const startClosure = epsilonClosure(nfa, [nfa.startState]);
+  const startKey = stateSetKey(startClosure);
+  stateMap.set(startKey, 0);
+
+  const isAccepting = startClosure.some(s => nfa.acceptStates.includes(s));
+  dfaStates.push({
+    id: 0,
+    nfaStates: startClosure,
+    isAccepting,
+  });
+
+  const queue: number[][] = [startClosure];
+
+  while (queue.length > 0) {
+    const currentNfaStates = queue.shift()!;
+    const currentKey = stateSetKey(currentNfaStates);
+    const currentDfaId = stateMap.get(currentKey)!;
+
+    for (const symbol of nfa.alphabet) {
+      const moveResult = move(nfa, currentNfaStates, symbol);
+      if (moveResult.length === 0) {
+        continue; // No transition on this symbol = reject (no dead state)
+      }
+
+      const closure = epsilonClosure(nfa, moveResult);
+      const nextKey = stateSetKey(closure);
+
+      let nextDfaId = stateMap.get(nextKey);
+      if (nextDfaId === undefined) {
+        nextDfaId = dfaStates.length;
+        stateMap.set(nextKey, nextDfaId);
+        const accepting = closure.some(s => nfa.acceptStates.includes(s));
+        dfaStates.push({
+          id: nextDfaId,
+          nfaStates: closure,
+          isAccepting: accepting,
+        });
+        queue.push(closure);
+      }
+
+      dfaTransitions.push({
+        from: currentDfaId,
+        to: nextDfaId,
+        symbol,
+      });
+    }
+  }
+
+  const acceptStates = dfaStates.filter(s => s.isAccepting).map(s => s.id);
+
+  return {
+    states: dfaStates,
+    alphabet: [...nfa.alphabet],
+    startState: 0,
+    acceptStates,
+    transitions: dfaTransitions,
+  };
 }

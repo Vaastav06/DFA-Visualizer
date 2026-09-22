@@ -21,12 +21,10 @@ describe('application shell', () => {
   });
 
   it('surfaces a compiler failure as a user-facing message, not a crash', async () => {
-    // The compiler is not implemented yet, so it throws InternalCompilerError.
-    // This asserts the error PATH is wired, which stays true afterwards: once
-    // the pipeline works, change the input below to an invalid expression.
+    // Use an invalid expression that will fail validation (dangling operator **)
     render(<App />);
 
-    await userEvent.type(screen.getByLabelText(/regular expression/i), 'a|b');
+    await userEvent.type(screen.getByLabelText(/regular expression/i), 'a**');
     await userEvent.click(screen.getByRole('button', { name: /convert/i }));
 
     expect(screen.getByRole('alert')).toBeInTheDocument();

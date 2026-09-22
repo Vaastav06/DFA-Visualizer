@@ -2,7 +2,6 @@
  * Generic transition table: rows are states, columns are alphabet symbols.
  *
  * OWNER: Person 3.
- * TODO(Person 3): implement the body from the DFA's transitions.
  *
  * Display rules:
  *   state ids render as `q0`, `q1`, ...    (STATE ID CONTRACT)
@@ -10,6 +9,7 @@
  */
 
 import type { DFA } from '../compiler';
+import { formatStateId } from '../hooks/useCompiler';
 
 interface TransitionTableProps {
   dfa: DFA;
@@ -18,6 +18,12 @@ interface TransitionTableProps {
 }
 
 export function TransitionTable({ dfa, caption = 'DFA transition table' }: TransitionTableProps) {
+  // Build transition lookup for quick access
+  const transMap = new Map<string, string>();
+  for (const t of dfa.transitions) {
+    transMap.set(`${t.from}:${t.symbol}`, String(t.to));
+  }
+
   return (
     <table className="transition-table">
       <caption>{caption}</caption>
@@ -31,7 +37,24 @@ export function TransitionTable({ dfa, caption = 'DFA transition table' }: Trans
           ))}
         </tr>
       </thead>
-      <tbody>{/* TODO(Person 3): one row per dfa.states entry. */}</tbody>
+      <tbody>
+        {dfa.states.map((state) => (
+          <tr key={state.id}>
+            <th scope="row">
+              {formatStateId(state.id)}
+              {state.isAccepting && <span className="state-badge">accepting</span>}
+            </th>
+            {dfa.alphabet.map((symbol) => {
+              const target = transMap.get(`${state.id}:${symbol}`);
+              return (
+                <td key={symbol}>
+                  {target ? formatStateId(Number(target)) : <span className="empty-cell">—</span>}
+                </td>
+              );
+            })}
+          </tr>
+        ))}
+      </tbody>
     </table>
   );
 }

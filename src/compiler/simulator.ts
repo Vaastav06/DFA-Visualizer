@@ -15,13 +15,76 @@
  *  - never throws for ordinary rejection — rejection is a result, not an error
  */
 
-import { InternalCompilerError } from './errors';
-import type { DFA, SimulationResult } from './types';
+import type { DFA, SimulationResult, SimulationStep } from './types';
 
 /** Runs `input` through `dfa` and returns the full trace. */
 export function simulate(dfa: DFA, input: string): SimulationResult {
-  throw new InternalCompilerError(
-    'String simulation is not implemented yet.',
-    `TODO(Person 1): implement simulate() in src/compiler/simulator.ts. DFA has ${dfa.states.length} states, input ${JSON.stringify(input)}.`
-  );
+  // Build transition lookup: state -> symbol -> target state
+  const transMap = new Map<number, Map<string, number>>();
+  for (const t of dfa.transitions) {
+    if (!transMap.has(t.from)) {
+      transMap.set(t.from, new Map());
+    }
+    // DFA transitions never have null symbols (no epsilon in DFA)
+    transMap.get(t.from)!.set(t.symbol as string, t.to);
+  }
+
+  const steps: SimulationStep[] = [];
+  const path: number[] = [dfa.startState];
+  let currentState = dfa.startState;
+  let accepted = true;
+  let rejectedAt: number | undefined;
+
+  for (let i = 0; i < input.length; i++) {
+    const symbol = input[i];
+
+    // Check if symbol is in alphabet
+    if (!dfa.alphabet.includes(symbol)) {
+      accepted = false;
+      rejectedAt = i;
+      break;
+    }
+
+    const transitions = transMap.get(currentState);
+    const nextState = transitions?.get(symbol);
+
+    if (nextState === undefined) {
+      // No transition on this symbol from current state
+      steps.push({
+        index: i,
+        symbol,
+        fromState: currentState,
+        toState: null,
+      });
+      accepted = false;
+      rejectedAt = i;
+      break;
+    }
+
+    steps.push({
+      index: i,
+      symbol,
+      fromState: currentState,
+      toState: nextState,
+    });
+
+    currentState = nextState;
+    path.push(currentState);
+  }
+
+  // If we consumed all input without rejecting, check if final state is accepting
+  if (accepted && rejectedAt === undefined) {
+    accepted = dfa.acceptStates.includes(currentState);
+    if (!accepted) {
+      rejectedAt = input.length;
+    }
+  }
+
+  return {
+    input,
+    accepted,
+    steps,
+    path,
+    rejectedAt,
+  };
 }

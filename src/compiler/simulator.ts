@@ -51,8 +51,12 @@ export function simulate(dfa: DFA, input: string): SimulationResult {
     const target = alphabet.has(symbol) ? table.get(`${current}:${symbol}`) : undefined;
 
     if (target === undefined) {
+      const error = !alphabet.has(symbol)
+        ? `Symbol "${symbol}" is not in the alphabet { ${[...alphabet].join(', ')} }.`
+        : `No transition from state q${current} on symbol "${symbol}".`;
+
       steps.push({ index, symbol, fromState: current, toState: null });
-      return { input, accepted: false, steps, path, rejectedAt: index };
+      return { input, accepted: false, steps, path, consumed: index, error, rejectedAt: index };
     }
 
     steps.push({ index, symbol, fromState: current, toState: target });
@@ -64,5 +68,14 @@ export function simulate(dfa: DFA, input: string): SimulationResult {
   // The whole input was consumed. Acceptance is now purely about where we
   // ended up, which is also what makes the empty string work: the loop never
   // runs and `current` is still the start state.
-  return { input, accepted: acceptStates.has(current), steps, path };
+  const accepted = acceptStates.has(current);
+  const error = accepted
+    ? undefined
+    : `String was completely consumed but halted in non-accepting state q${current}.`;
+
+  return { input, accepted, steps, path, consumed: input.length, error };
 }
+
+/** Alias for {@link simulate}. */
+export const simulateDFA = simulate;
+

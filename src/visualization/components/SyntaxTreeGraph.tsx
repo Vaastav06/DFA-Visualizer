@@ -6,13 +6,7 @@
  */
 
 import { useCallback, useMemo } from 'react';
-import {
-  Background,
-  ReactFlow,
-  ReactFlowProvider,
-  type Edge,
-  type Node,
-} from '@xyflow/react';
+import { Background, ReactFlow, ReactFlowProvider, type Edge, type Node } from '@xyflow/react';
 
 import type { SyntaxTreeGraphProps, SyntaxTreeNodeData } from '../types';
 import { adaptSyntaxTree } from '../adapters/syntaxTreeAdapter';
@@ -136,4 +130,3 @@ export function SyntaxTreeGraph(props: SyntaxTreeGraphProps) {
     </ReactFlowProvider>
   );
 }
-

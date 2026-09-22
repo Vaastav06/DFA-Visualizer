@@ -94,4 +94,3 @@ export function adaptSyntaxTree(tree: SyntaxNode | null | undefined): AdaptedSyn
     rootId: String(tree.id),
   };
 }
-

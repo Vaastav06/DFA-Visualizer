@@ -78,4 +78,3 @@ export function SyntaxTreeNode({ data, selected }: NodeProps<SyntaxTreeNodeType>
     </div>
   );
 }
-

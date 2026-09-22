@@ -103,16 +103,14 @@ export function AstAnalysisTable({
                   {row.isEndMarker && <span className="vis-tag">end-marker</span>}
                 </td>
                 <td>
-                  <span className={`vis-bool ${row.nullable ? 'vis-bool--true' : 'vis-bool--false'}`}>
+                  <span
+                    className={`vis-bool ${row.nullable ? 'vis-bool--true' : 'vis-bool--false'}`}
+                  >
                     {row.nullable ? 'true' : 'false'}
                   </span>
                 </td>
-                <td className="vis-table__set-cell">
-                  {'{' + row.firstpos.join(', ') + '}'}
-                </td>
-                <td className="vis-table__set-cell">
-                  {'{' + row.lastpos.join(', ') + '}'}
-                </td>
+                <td className="vis-table__set-cell">{'{' + row.firstpos.join(', ') + '}'}</td>
+                <td className="vis-table__set-cell">{'{' + row.lastpos.join(', ') + '}'}</td>
               </tr>
             );
           })}
@@ -121,4 +119,3 @@ export function AstAnalysisTable({
     </div>
   );
 }
-

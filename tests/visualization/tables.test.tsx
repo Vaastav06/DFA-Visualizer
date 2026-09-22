@@ -148,7 +148,9 @@ describe('DfaPositionMapping', () => {
   it('renders table displaying DFA state IDs, syntax-tree positions, and acceptance status', () => {
     render(<DfaPositionMapping dfa={MOCK_DFA} />);
 
-    expect(screen.getByRole('table', { name: /DFA State to Position Mapping/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole('table', { name: /DFA State to Position Mapping/i })
+    ).toBeInTheDocument();
     expect(screen.getByText('q0')).toBeInTheDocument();
     expect(screen.getByText('{0, 1, 3}')).toBeInTheDocument();
     expect(screen.getByText('start')).toBeInTheDocument();
@@ -160,13 +162,7 @@ describe('DfaPositionMapping', () => {
 
   it('triggers onSelectState when a row is clicked', () => {
     const onSelectState = vi.fn();
-    render(
-      <DfaPositionMapping
-        dfa={MOCK_DFA}
-        selectedStateId={0}
-        onSelectState={onSelectState}
-      />
-    );
+    render(<DfaPositionMapping dfa={MOCK_DFA} selectedStateId={0} onSelectState={onSelectState} />);
 
     const row0 = screen.getByText('q0').closest('tr')!;
     expect(row0).toHaveClass('vis-table__row--selected');

@@ -88,4 +88,3 @@ export function layoutSyntaxTree(
 
   return result;
 }
-

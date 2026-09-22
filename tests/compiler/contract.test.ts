@@ -64,8 +64,8 @@ describe('automaton invariants hold for the fixtures', () => {
     }
   });
 
-  it('DFA states record the NFA subset they came from', () => {
-    expect(MOCK_DFA.states.every((s) => s.nfaStates.length > 0)).toBe(true);
+  it('DFA states record the positions / subsets they represent', () => {
+    expect(MOCK_DFA.states.every((s) => s.positions.length > 0 && (s.nfaStates?.length ?? 0) > 0)).toBe(true);
   });
 
   it('minimization does not grow the automaton', () => {

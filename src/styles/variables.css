@@ -9,6 +9,8 @@
  */
 
 :root {
+  color-scheme: light;
+
   /* Surfaces */
   --background: #f6f7f9;
   --surface: #ffffff;
@@ -79,6 +81,8 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
+    color-scheme: dark;
+
     --background: #14171c;
     --surface: #1b1f26;
     --surface-elevated: #232831;

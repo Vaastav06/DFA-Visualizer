@@ -6,6 +6,7 @@
  */
 
 import { EXAMPLE_EXPRESSIONS } from '../data/examples';
+import '../styles/components/ExampleExpressions.css';
 
 interface ExampleExpressionsProps {
   onSelect?: (expression: string) => void;

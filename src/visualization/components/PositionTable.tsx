@@ -83,4 +83,3 @@ export function PositionTable({
     </div>
   );
 }
-

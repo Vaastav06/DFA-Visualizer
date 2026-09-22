@@ -17,11 +17,7 @@ export function PositionBadge({
   isEndMarker = symbol === '#',
   className,
 }: PositionBadgeProps) {
-  const classNames = [
-    'position-badge',
-    isEndMarker ? 'position-badge--end' : '',
-    className,
-  ]
+  const classNames = ['position-badge', isEndMarker ? 'position-badge--end' : '', className]
     .filter(Boolean)
     .join(' ');
 
@@ -32,4 +28,3 @@ export function PositionBadge({
     </span>
   );
 }
-

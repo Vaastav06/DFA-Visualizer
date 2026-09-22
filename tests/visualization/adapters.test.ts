@@ -141,7 +141,7 @@ describe('adaptDfa', () => {
 
   it('throws an error if a DFA contains an epsilon transition', () => {
     const brokenDfa: DFA = {
-      states: [{ id: 0, nfaStates: [0], isAccepting: true }],
+      states: [{ id: 0, positions: [0], nfaStates: [0], isAccepting: true }],
       alphabet: ['a'],
       startState: 0,
       acceptStates: [0],

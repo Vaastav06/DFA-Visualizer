@@ -17,6 +17,9 @@ export function DfaGraph({
   dfa,
   kind = 'dfa',
   highlight,
+  activeStateId,
+  highlightedStateIds,
+  highlightedTransition,
   height,
   className,
   onStateClick,
@@ -29,6 +32,9 @@ export function DfaGraph({
       kind={kind}
       graph={graph}
       highlight={highlight}
+      activeStateId={activeStateId}
+      highlightedStateIds={highlightedStateIds}
+      highlightedTransition={highlightedTransition}
       height={height}
       className={className}
       onStateClick={onStateClick}

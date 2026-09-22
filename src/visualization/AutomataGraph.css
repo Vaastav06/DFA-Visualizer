@@ -47,22 +47,21 @@
 }
 
 /* ==========================================================================
-   State Node
+   State Node (DFA & Minimized DFA)
    ========================================================================== */
 
 .state-node {
   position: relative;
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   background: var(--state-fill);
   border: 2px solid var(--state-border);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   font-family: var(--font-mono);
-  font-size: 0.875rem;
-  font-weight: 600;
   color: var(--text-primary);
   user-select: none;
   cursor: pointer;
@@ -76,6 +75,24 @@
 .state-node:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
+}
+
+.state-node__label {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.state-node__positions {
+  font-size: 0.625rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  max-width: 46px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1;
+  margin-top: 1px;
 }
 
 /* Accepting state: distinct concentric double border */
@@ -92,6 +109,13 @@
   outline-offset: 3px;
 }
 
+/* Simulation active state */
+.state-node--active {
+  background: var(--warning-subtle);
+  border-color: var(--state-highlight);
+  box-shadow: 0 0 0 4px var(--warning-subtle);
+}
+
 /* Simulation highlighted state */
 .state-node--highlighted {
   background: var(--warning-subtle);
@@ -100,7 +124,8 @@
   box-shadow: 0 0 0 4px var(--warning-subtle);
 }
 
-.state-node--accepting.state-node--highlighted {
+.state-node--accepting.state-node--highlighted,
+.state-node--accepting.state-node--active {
   box-shadow:
     inset 0 0 0 3px var(--warning-subtle),
     inset 0 0 0 5px var(--state-highlight),
@@ -129,6 +154,116 @@
 
 /* React Flow handles hidden from view but functional for routing */
 .state-node__handle {
+  width: 6px;
+  height: 6px;
+  background: transparent;
+  border: none;
+  opacity: 0;
+}
+
+/* ==========================================================================
+   Syntax Tree Node
+   ========================================================================== */
+
+.syntax-tree-node {
+  position: relative;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 4px 10px;
+  border-radius: var(--radius-md);
+  background: var(--surface-elevated);
+  border: 2px solid var(--border-strong);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  user-select: none;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+  box-sizing: border-box;
+}
+
+.syntax-tree-node:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Operator nodes (concat, union, star) */
+.syntax-tree-node--concat,
+.syntax-tree-node--union,
+.syntax-tree-node--star {
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  background: var(--surface-sunken);
+  font-size: 1.125rem;
+}
+
+/* Symbol leaf nodes */
+.syntax-tree-node--symbol {
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border-color: var(--border-strong);
+}
+
+/* Augmented end-marker (#) */
+.syntax-tree-node--end-marker {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* Node highlighting & selection */
+.syntax-tree-node--highlighted {
+  border-color: var(--warning);
+  background: var(--warning-subtle);
+  box-shadow: 0 0 0 3px var(--warning-subtle);
+}
+
+.syntax-tree-node--selected {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.syntax-tree-node__label {
+  line-height: 1;
+}
+
+/* Leaf position index badge */
+.syntax-tree-node__pos {
+  position: absolute;
+  bottom: -8px;
+  right: -8px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-strong);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0 5px;
+  min-width: 16px;
+  text-align: center;
+  color: var(--text-secondary);
+  line-height: 1.4;
+  box-shadow: var(--shadow-sm);
+}
+
+.syntax-tree-node__pos--end {
+  background: var(--accent);
+  color: var(--text-inverse);
+  border-color: var(--accent);
+}
+
+.syntax-tree-node__handle {
   width: 6px;
   height: 6px;
   background: transparent;
@@ -281,6 +416,21 @@
   background: var(--surface);
 }
 
+.graph-legend__swatch--active {
+  background: var(--warning-subtle);
+  border: 2px solid var(--warning);
+}
+
+.graph-legend__swatch--positions {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-radius: 0;
+  width: auto;
+  height: auto;
+}
+
 .graph-legend__swatch--epsilon {
   width: 18px;
   height: 0;
@@ -288,23 +438,266 @@
   border-top: 2px dashed var(--edge-epsilon);
 }
 
+.graph-legend__swatch--op {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-strong);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.graph-legend__swatch--symbol {
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.graph-legend__swatch--end-marker {
+  width: 16px;
+  height: 16px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-subtle);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.graph-legend__swatch--pos {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-strong);
+  font-size: 0.6875rem;
+  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ==========================================================================
+   Table & Badge Visualizations (AST Analysis, Positions, Followpos, Mapping)
+   ========================================================================== */
+
+.vis-table-container {
+  width: 100%;
+  overflow-x: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  margin: var(--space-3) 0;
+}
+
+.vis-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: var(--font-size-sm);
+  color: var(--text-primary);
+}
+
+.vis-table__caption {
+  padding: var(--space-2) var(--space-4);
+  text-align: left;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--border);
+}
+
+.vis-table th {
+  padding: var(--space-2) var(--space-4);
+  background: var(--surface-sunken);
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--border);
+}
+
+.vis-table td {
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.vis-table tr:last-child td {
+  border-bottom: none;
+}
+
+.vis-table__row--clickable {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.vis-table__row--clickable:hover {
+  background: var(--surface-sunken);
+}
+
+.vis-table__row--selected {
+  background: var(--accent-subtle) !important;
+}
+
+.vis-table__code-cell code {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.vis-table__num-cell {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.vis-table__set-cell {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+}
+
+.vis-empty-set {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Position badge */
+.position-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-strong);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.position-badge--end {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.position-badge__num {
+  font-weight: 700;
+}
+
+.position-badge__sym {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+}
+
+/* Badges & Tags */
+.vis-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+}
+
+.vis-badge--accent {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.vis-badge--success {
+  background: var(--success-subtle);
+  border-color: var(--success);
+  color: var(--success);
+  font-weight: 600;
+}
+
+.vis-badge--muted {
+  color: var(--text-muted);
+}
+
+.vis-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+.vis-tag--start {
+  background: var(--success-subtle);
+  color: var(--success);
+}
+
+.vis-bool {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.8125rem;
+}
+
+.vis-bool--true {
+  color: var(--success);
+}
+
+.vis-bool--false {
+  color: var(--text-muted);
+}
+
+.vis-state-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
 /* ==========================================================================
    Empty State
    ========================================================================== */
 
-.graph-empty {
+.graph-empty,
+.vis-empty-state {
   display: flex;
   align-items: center;
   justify-content: center;
   height: 100%;
-  min-height: 240px;
+  min-height: 200px;
   padding: var(--space-8);
   text-align: center;
   color: var(--text-secondary);
   font-size: var(--font-size-base);
 }
 
-.graph-empty p {
+.graph-empty p,
+.vis-empty-state p {
   max-width: 44ch;
   margin: 0;
 }

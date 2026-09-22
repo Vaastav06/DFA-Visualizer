@@ -68,34 +68,36 @@ Notes:
 
 ## Person 2 - Visualization
 
-Status: **Done** - merged to `main`
+Status: **Done** (Ready for Phase 3 UI Integration)
 
 Branch: `feature/visualization`
 
 Current task:
 
-- None. Available to help with Phase 3 integration.
+- None. Available to help with Phase 3 integration with Person 3.
 
 Completed:
 
-- Graph shell in `AutomataGraph` with React Flow v12 (`@xyflow/react`)
-- NFA adapter with parallel transition merging and epsilon translation (`null -> ε`)
-- DFA adapter preserving `nfaStates` subset mappings, enforcing no-epsilon invariant
-- Deterministic BFS layered layout algorithm (`graphLayout.ts`)
-- Custom `StateNode` with concentric double border, incoming start arrow (`→`), and simulation highlight
-- Custom `TransitionEdge` with self-loop geometry, back-edge curves, and dashed epsilon edges
-- Accessible `GraphControls` (+, −, Fit, Reset) and `GraphLegend`
-- Responsive layout and theme support via project CSS custom properties
-- 34 visualization tests (12 adapter tests, 7 layout tests, 15 component/graph tests)
+- Complete visualization layer for Direct Regular Expression → DFA construction pipeline (Dragon Book Algorithm 3.36).
+- Public component `<SyntaxTreeGraph />` with deterministic tree layout (`treeLayout.ts`), centering parent nodes over subtrees.
+- Custom `SyntaxTreeNode` with operator styling (`•`, `|`, `*`), leaf position badges (`[p]`), augmented end-marker `#` accent styling, and analysis tooltips (nullable, firstpos, lastpos).
+- Reusable `PositionBadge` and `PositionTable` displaying 1-based leaf positions and distinguishing `#` from user input symbols.
+- `AstAnalysisTable` formatting authoritative node-level nullable, firstpos, and lastpos sets.
+- Interactive `FollowposTable` rendering followpos sets with empty set (`∅`) handling and row selection.
+- `DfaPositionMapping` table mapping each DFA state to its syntax-tree leaf position subset and acceptance status.
+- `<DfaGraph />` with canonical `positions` subset display (`q0\n{1,2,3}`), double borders for accepting states, incoming start arrow (`→`), and direct simulation playback props (`activeStateId`, `highlightedStateIds`, `highlightedTransition`).
+- Context-aware `GraphLegend` supporting syntax tree and DFA modes without NFA terminology.
+- All 63 visualization tests passing (syntax tree, layout, adapters, tables, graphs).
+- 100% typecheck clean, lint clean, format clean, and production build passing.
 
 Blocked:
 
--
+- None
 
 Notes:
 
-- `<NfaGraph />` and `<DfaGraph />` are fully implemented and on `main`.
-- Person 3 can directly consume them from `@/visualization`.
+- Person 3 can directly import all visual components and tables from `@/visualization` or `src/visualization`.
+- Primary components: `SyntaxTreeGraph`, `DfaGraph`, `PositionTable`, `AstAnalysisTable`, `FollowposTable`, `DfaPositionMapping`, `GraphControls`, `GraphLegend`, `PositionBadge`.
 
 ---
 

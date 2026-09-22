@@ -1,12 +1,9 @@
 /**
- * The shared graph shell used by `<NfaGraph />` and `<DfaGraph />`.
+ * The shared graph shell used by `<DfaGraph />`.
  *
  * OWNER: Person 2.
  * Mounts `<ReactFlow />` with custom node and edge types, deterministic
  * layout from `layout/graphLayout.ts`, legend, and controls.
- *
- * Keeping the React Flow instance in ONE component means the NFA and DFA graphs
- * cannot drift apart visually.
  */
 
 import { type ReactNode, useCallback, useMemo } from 'react';
@@ -45,6 +42,9 @@ interface AutomataGraphProps {
   kind: AutomatonKind;
   graph: AdaptedGraph | null;
   highlight?: GraphHighlight;
+  activeStateId?: number | null;
+  highlightedStateIds?: number[];
+  highlightedTransition?: { from: number; to: number; symbol?: string | null } | null;
   height?: number | string;
   className?: string;
   onStateClick?: (stateId: number, data: StateNodeData) => void;
@@ -56,6 +56,9 @@ function AutomataGraphInner({
   kind,
   graph,
   highlight,
+  activeStateId,
+  highlightedStateIds,
+  highlightedTransition,
   height,
   className,
   onStateClick,
@@ -88,7 +91,13 @@ function AutomataGraphInner({
     }
     return graph.nodes.map((node) => {
       const pos = layout.get(node.data.stateId) ?? { x: 0, y: 0 };
-      const isHighlighted = Boolean(highlight?.states?.includes(node.data.stateId));
+      const isHighlighted =
+        Boolean(highlight?.states?.includes(node.data.stateId)) ||
+        Boolean(highlightedStateIds?.includes(node.data.stateId));
+      const isActive =
+        activeStateId !== undefined &&
+        activeStateId !== null &&
+        activeStateId === node.data.stateId;
       const isSelected =
         selectedStateId !== undefined && selectedStateId !== null
           ? selectedStateId === node.data.stateId
@@ -101,11 +110,20 @@ function AutomataGraphInner({
         data: {
           ...node.data,
           isHighlighted,
+          isActive,
           isSelected,
         },
       };
     });
-  }, [graph, hasContent, layout, highlight?.states, selectedStateId]);
+  }, [
+    graph,
+    hasContent,
+    layout,
+    highlight?.states,
+    highlightedStateIds,
+    activeStateId,
+    selectedStateId,
+  ]);
 
   // 3. Prepare React Flow edges with highlighting and markers
   const flowEdges: TransitionEdgeType[] = useMemo(() => {
@@ -116,14 +134,22 @@ function AutomataGraphInner({
       const from = Number(edge.source);
       const to = Number(edge.target);
 
-      const isHighlighted = Boolean(
-        highlight?.transitions?.some(
-          (ht) =>
-            ht.from === from &&
-            ht.to === to &&
-            (ht.symbol === undefined || edge.data.symbols.includes(ht.symbol))
-        )
-      );
+      const isHighlighted =
+        Boolean(
+          highlight?.transitions?.some(
+            (ht) =>
+              ht.from === from &&
+              ht.to === to &&
+              (ht.symbol === undefined || edge.data.symbols.includes(ht.symbol))
+          )
+        ) ||
+        Boolean(
+          highlightedTransition &&
+          highlightedTransition.from === from &&
+          highlightedTransition.to === to &&
+          (highlightedTransition.symbol === undefined ||
+            edge.data.symbols.includes(highlightedTransition.symbol))
+        );
 
       const isSelfLoop = from === to;
       const isBackEdge = from > to;
@@ -156,7 +182,7 @@ function AutomataGraphInner({
         },
       };
     });
-  }, [graph, hasContent, highlight?.transitions]);
+  }, [graph, hasContent, highlight?.transitions, highlightedTransition]);
 
   // Handle node selection
   const handleNodeClick = useCallback(

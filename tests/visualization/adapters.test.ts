@@ -122,7 +122,7 @@ describe('adaptDfa', () => {
     expect(empty.edges).toEqual([]);
   });
 
-  it('maps DFA states and preserves nfaStates subset mapping', () => {
+  it('maps DFA states and preserves canonical positions and nfaStates subset mapping', () => {
     const adapted = adaptDfa(MOCK_DFA);
     expect(adapted.nodes).toHaveLength(3);
 
@@ -130,18 +130,39 @@ describe('adaptDfa', () => {
     expect(q0.data.label).toBe('q0');
     expect(q0.data.isStart).toBe(true);
     expect(q0.data.isAccepting).toBe(false);
+    expect(q0.data.positions).toEqual([0, 1, 3]);
     expect(q0.data.nfaStates).toEqual([0, 1, 3]);
 
     const q1 = adapted.nodes.find((n) => n.id === '1')!;
     expect(q1.data.label).toBe('q1');
     expect(q1.data.isStart).toBe(false);
     expect(q1.data.isAccepting).toBe(true);
+    expect(q1.data.positions).toEqual([2, 5]);
     expect(q1.data.nfaStates).toEqual([2, 5]);
+  });
+
+  it('maps canonical positions when state.positions is provided without nfaStates', () => {
+    const directDfa: DFA = {
+      states: [
+        { id: 0, positions: [1, 2, 3], isAccepting: false },
+        { id: 1, positions: [4, 5], isAccepting: true },
+      ],
+      alphabet: ['a', 'b'],
+      startState: 0,
+      acceptStates: [1],
+      transitions: [{ from: 0, to: 1, symbol: 'a' }],
+    };
+
+    const adapted = adaptDfa(directDfa);
+    expect(adapted.nodes).toHaveLength(2);
+    expect(adapted.nodes[0].data.positions).toEqual([1, 2, 3]);
+    expect(adapted.nodes[0].data.nfaStates).toEqual([1, 2, 3]);
+    expect(adapted.nodes[1].data.positions).toEqual([4, 5]);
   });
 
   it('throws an error if a DFA contains an epsilon transition', () => {
     const brokenDfa: DFA = {
-      states: [{ id: 0, nfaStates: [0], isAccepting: true }],
+      states: [{ id: 0, positions: [0], nfaStates: [0], isAccepting: true }],
       alphabet: ['a'],
       startState: 0,
       acceptStates: [0],

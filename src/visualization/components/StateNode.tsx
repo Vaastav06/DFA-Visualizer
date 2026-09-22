@@ -1,14 +1,16 @@
 /**
- * A single automaton state.
+ * A single DFA automaton state.
  *
  * OWNER: Person 2.
- * Custom node for React Flow with connection handles and visual indicators.
+ * Custom node for React Flow with connection handles, start/accept indicators,
+ * syntax-tree position sets, and simulation highlighting.
  *
- * Visual contract (docs/VISUALIZATION_SPEC.md):
+ * Visual contract:
  *   normal state    circle, single border
  *   accepting state circle, double border
  *   start state     circle with incoming arrow from nowhere
- *   highlighted     accent/warning colour while simulation step is on this state
+ *   highlighted     accent/warning stroke while simulation step is on this state
+ *   positions       displays syntax-tree position set {1, 2, 3}
  */
 
 import { Handle, Position, type NodeProps, type Node } from '@xyflow/react';
@@ -18,28 +20,31 @@ export type StateNodeType = Node<StateNodeData, 'state'>;
 
 export function StateNode({ data, selected }: NodeProps<StateNodeType>) {
   const isSelected = Boolean(data.isSelected || selected);
+  const posList = data.positions ?? data.nfaStates ?? [];
+  const posString = posList.length > 0 ? `{${posList.join(',')}}` : '';
 
   const classNames = [
     'state-node',
     data.isAccepting ? 'state-node--accepting' : '',
     data.isStart ? 'state-node--start' : '',
     data.isHighlighted ? 'state-node--highlighted' : '',
+    data.isActive ? 'state-node--active' : '',
     isSelected ? 'state-node--selected' : '',
   ]
     .filter(Boolean)
     .join(' ');
 
   const ariaDescription = [
-    data.label,
-    data.isStart ? '(start)' : '',
-    data.isAccepting ? '(accepting)' : '',
-    data.isHighlighted ? '(active)' : '',
+    `State ${data.label}`,
+    data.isStart ? '(start state)' : '',
+    data.isAccepting ? '(accepting state)' : '',
+    data.isHighlighted || data.isActive ? '(active simulation state)' : '',
+    posList.length > 0 ? `positions ${posList.join(' ')}` : '',
   ]
     .filter(Boolean)
-    .join(' ');
+    .join(', ');
 
-  const tooltip =
-    data.nfaStates && data.nfaStates.length > 0 ? `{${data.nfaStates.join(', ')}}` : undefined;
+  const tooltip = posList.length > 0 ? `Positions: {${posList.join(', ')}}` : undefined;
 
   return (
     <div
@@ -112,6 +117,9 @@ export function StateNode({ data, selected }: NodeProps<StateNodeType>) {
 
       {/* State label, e.g. q0 */}
       <span className="state-node__label">{data.label}</span>
+
+      {/* Syntax-tree leaf positions */}
+      {posString && <span className="state-node__positions">{posString}</span>}
     </div>
   );
 }

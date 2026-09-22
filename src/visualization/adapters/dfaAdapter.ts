@@ -3,11 +3,14 @@
  *
  * OWNER: Person 2.
  *
- * CONTRACT: as `nfaAdapter`, with two differences:
- *  - a DFA has NO epsilon transitions; if `symbol === null` appears, that is a
- *    compiler bug — surface it, do not silently draw `ε`
- *  - each node carries `nfaStates` so the UI can show the subset-construction
- *    mapping (e.g. `q2 = {1, 3, 4}`) in a tooltip
+ * CONTRACT: translates the shared `DFA` contract into the node/edge data the
+ * graph components render.
+ *
+ * Rules:
+ *  - a DFA has NO epsilon transitions; if `symbol === null` appears, surface
+ *    an error
+ *  - each node carries `positions` (syntax-tree leaf positions, e.g. [1, 2, 3])
+ *  - `nfaStates` is preserved as a deprecated backwards-compatibility alias
  */
 
 import type { DFA } from '../../compiler/types';
@@ -20,16 +23,21 @@ export function adaptDfa(dfa: DFA): AdaptedGraph {
 
   const acceptSet = new Set(dfa.acceptStates ?? []);
 
-  const nodes: GraphNode[] = dfa.states.map((state) => ({
-    id: String(state.id),
-    data: {
-      stateId: state.id,
-      label: `q${state.id}`,
-      isStart: state.id === dfa.startState,
-      isAccepting: state.isAccepting || acceptSet.has(state.id),
-      nfaStates: state.nfaStates ? [...state.nfaStates] : undefined,
-    },
-  }));
+  const nodes: GraphNode[] = dfa.states.map((state) => {
+    const positions = state.positions ?? state.nfaStates ?? [];
+
+    return {
+      id: String(state.id),
+      data: {
+        stateId: state.id,
+        label: `q${state.id}`,
+        isStart: state.id === dfa.startState,
+        isAccepting: state.isAccepting || acceptSet.has(state.id),
+        positions: [...positions],
+        nfaStates: state.nfaStates ? [...state.nfaStates] : [...positions],
+      },
+    };
+  });
 
   // Merge parallel transitions between the same (from, to) state pair
   const edgeMap = new Map<string, { from: number; to: number; symbols: string[] }>();

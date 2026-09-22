@@ -1,30 +1,47 @@
 /**
  * PUBLIC API OF THE VISUALIZATION MODULE.
  *
- * Person 3 imports from `@/visualization` and from nothing deeper.
- * Everything else under src/visualization/ is private to Person 2.
+ * OWNER: Person 2.
+ * Person 3 imports from `@/visualization` (or `src/visualization`).
  *
- * Adding or removing an export here is a contract change: announce it, and
- * update docs/VISUALIZATION_SPEC.md in the same commit.
- *
- *   import { NfaGraph, DfaGraph } from '@/visualization';
+ * This provides interactive visualization of the Direct Regular Expression → DFA
+ * construction pipeline (Dragon Book Algorithm 3.36):
+ *   - SyntaxTreeGraph
+ *   - DfaGraph
+ *   - PositionTable
+ *   - AstAnalysisTable
+ *   - FollowposTable
+ *   - DfaPositionMapping
+ *   - Reusable GraphControls, GraphLegend, PositionBadge
  */
 
-export { NfaGraph } from './components/NfaGraph';
+// Graph Components
+export { SyntaxTreeGraph } from './components/SyntaxTreeGraph';
 export { DfaGraph } from './components/DfaGraph';
+export { AutomataGraph } from './components/AutomataGraph';
+export { GraphControls } from './components/GraphControls';
+export { GraphLegend } from './components/GraphLegend';
+export { EmptyGraphState } from './components/EmptyGraphState';
 
+// Deprecated compatibility export
+export { NfaGraph } from './components/NfaGraph';
+
+// Table & Badge Components
+export { PositionBadge } from './components/PositionBadge';
+export { PositionTable } from './components/PositionTable';
+export { AstAnalysisTable } from './components/AstAnalysisTable';
+export { FollowposTable } from './components/FollowposTable';
+export { DfaPositionMapping } from './components/DfaPositionMapping';
+
+// Types
 export type {
   AutomatonKind,
+  AutomataGraphBaseProps,
   DfaGraphProps,
-  GraphHighlight,
+  SyntaxTreeGraphProps,
   NfaGraphProps,
+  GraphHighlight,
   StateNodeData,
+  SyntaxTreeNodeData,
   TransitionEdgeData,
 } from './types';
-
-/*
- * Intentionally NOT exported — internals owned by Person 2:
- *   AutomataGraph, StateNode, TransitionEdge, GraphControls, GraphLegend,
- *   EmptyGraphState, adaptNfa, adaptDfa, layoutAutomaton
- * They may be imported directly by tests in tests/visualization/ only.
- */

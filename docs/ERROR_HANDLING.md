@@ -15,8 +15,8 @@ no file names, no stack traces   file names and state counts welcome
 ```
 
 Everything a user reads comes from `error.message`. Nothing else reaches the
-screen. A student who sees `InternalCompilerError: thompson.ts:84 stack
-underflow` learns nothing and assumes they broke something.
+screen. A student who sees `InternalCompilerError: directDfa.ts:84 invariant
+broken` learns nothing and assumes they broke something.
 
 ## The error taxonomy
 

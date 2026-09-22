@@ -303,3 +303,34 @@ that accept different languages.
 **Consequence** If pruning removes every state, the language is empty and the
 result is a single non-accepting state with no transitions - the minimal
 automaton for that language. Only reachable by hand-built input.
+
+---
+
+## D-016 - Direct Regular Expression → DFA Construction via Syntax Trees and Followpos
+
+**Status** Accepted - mandatory architecture requirement
+
+**Decision** Implement the direct RE → DFA construction algorithm (Dragon Book algorithm 3.36)
+based on syntax tree position assignment, nullable, firstpos, lastpos, and followpos computation,
+rather than Thompson's construction + subset construction.
+
+**Alternatives** Thompson's ε-NFA construction followed by powerset/subset construction.
+
+**Why**
+1. **Instructional focus:** Direct RE → DFA construction is the standard syntax-tree method taught
+   in Compiler Design courses. It provides direct, inspectable intermediate tables (nullable,
+   firstpos, lastpos, followpos) that cleanly demonstrate compiler frontend concepts.
+2. **Deterministic and compact:** Direct construction avoids generating an intermediate 14-state
+   ε-NFA for an expression like `(a|b)*abb`, producing a clean 4-state DFA directly.
+3. **State representation:** In direct construction, each DFA state is a subset of 1-based syntax-tree
+   leaf positions (`positions: number[]`). Acceptance is determined directly by whether the position
+   assigned to the unique end-marker `#` is contained in the state's position set.
+
+**Consequence**
+- Obsolete Thompson construction, ε-NFA, ε-closure, and subset construction files have been removed.
+- `DFAState.positions` is the canonical, authoritative representation of a DFA state.
+- `DFAState.nfaStates` is preserved as a deprecated alias pointing directly to `positions` to ensure
+  backward compatibility with existing visualization adapters and fixtures.
+- The compilation result exposes `syntaxTree`, `positions`, `analysis`, and `followpos` for the UI
+  to render rich intermediate syntax analysis steps.
+

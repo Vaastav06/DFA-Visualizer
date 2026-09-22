@@ -28,21 +28,27 @@ Phase 1 is complete. Everything below is Phase 2 onward - see
 ---
 
 ## Compiler Core - Person 1
+### Direct Regular Expression → DFA Construction Pipeline
 
 Files: `src/compiler/`, `tests/compiler/`
 
 - [x] Validator - every error code in `docs/ERROR_HANDLING.md`
-- [x] Tokenizer
-- [x] Explicit concatenation
-- [x] Infix to postfix
-- [x] Thompson construction
-- [x] eps-closure and move
-- [x] Subset construction
-- [x] DFA minimization
-- [x] String simulation
-- [x] Pipeline orchestration in `compiler.ts`, including `steps`
-- [x] Compiler tests - one file per stage
+- [x] Tokenizer (deterministic tokens)
+- [x] Explicit concatenation (canonical insertion)
+- [x] Infix to postfix (shunting-yard algorithm)
+- [x] Syntax tree construction with end-marker `#` (`CONCAT(r, #)`)
+- [x] Position numbering (1-based, left-to-right deterministic leaf numbering)
+- [x] Nullable computation (recursive AST calculation)
+- [x] Firstpos computation (sorted, deduplicated position sets)
+- [x] Lastpos computation (sorted, deduplicated position sets)
+- [x] Followpos computation (concatenation and star rules)
+- [x] Direct DFA construction from position subsets (canonical `"1,2,3"` state keys)
+- [x] DFA minimization (Moore partition refinement with dead state pruning)
+- [x] String simulation with step tracking (`simulate`, `simulateDFA`)
+- [x] Pipeline orchestration in `compiler.ts`, including run-specific `steps`
+- [x] Compiler tests - one file per stage (AST, positions, nullable, firstpos, lastpos, followpos, direct DFA, minimization, simulation)
 - [x] Language-level tests via `simulate` for every example expression
+- [x] Legacy Thompson/subset modules removed; `DFAState.positions` canonical with `nfaStates` compatibility alias
 
 ## Visualization - Person 2
 

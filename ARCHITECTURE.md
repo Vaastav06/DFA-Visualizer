@@ -48,8 +48,9 @@ is handed. The UI is the only place all three meet, in
 
 ```text
 Regex -> Validation -> Tokenization -> Explicit Concatenation -> Postfix
-      -> Thompson Construction -> eps-NFA -> eps-Closure
-      -> Subset Construction -> DFA -> Minimization -> Simulation
+      -> Syntax Tree & End-Marker (#) -> Position Numbering
+      -> Nullable / Firstpos / Lastpos -> Followpos Table
+      -> Direct DFA Construction -> DFA Minimization -> Simulation
 ```
 
 Details in [docs/COMPILER_PIPELINE.md](docs/COMPILER_PIPELINE.md).

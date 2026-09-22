@@ -189,8 +189,9 @@ export function minimizeDfa(dfa: DFA): DFA {
   // single non-accepting state with no transitions.
   if (!survivors.includes(dfa.startState)) {
     const start = stateById.get(dfa.startState);
+    const startPositions = start?.positions ? [...start.positions] : (start?.nfaStates ? [...start.nfaStates] : []);
     return {
-      states: [{ id: 0, nfaStates: start ? [...start.nfaStates] : [], isAccepting: false }],
+      states: [{ id: 0, positions: startPositions, nfaStates: [...startPositions], isAccepting: false }],
       alphabet: [...dfa.alphabet],
       startState: 0,
       acceptStates: [],
@@ -233,18 +234,22 @@ export function minimizeDfa(dfa: DFA): DFA {
 
   const states: DFAState[] = order.map((blockIndex) => {
     const members = blocks[blockIndex];
-    // A merged state stands for all of its members, so its subset is the union
+    // A merged state stands for all of its members, so its position set is the union
     // of theirs - see docs/DATA_CONTRACTS.md.
-    const nfaStates = new Set<number>();
+    const positions = new Set<number>();
     for (const member of members) {
-      for (const nfaState of stateById.get(member)?.nfaStates ?? []) {
-        nfaStates.add(nfaState);
+      const memberState = stateById.get(member);
+      const memberPositions = memberState?.positions ?? memberState?.nfaStates ?? [];
+      for (const pos of memberPositions) {
+        positions.add(pos);
       }
     }
 
+    const sortedPositions = [...positions].sort((a, b) => a - b);
     return {
       id: newIdOfBlock.get(blockIndex) as number,
-      nfaStates: [...nfaStates].sort((a, b) => a - b),
+      positions: sortedPositions,
+      nfaStates: [...sortedPositions],
       isAccepting: accepting.has(members[0]),
     };
   });

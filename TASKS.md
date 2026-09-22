@@ -55,26 +55,62 @@ Files: `src/compiler/`, `tests/compiler/`
 
 Files: `src/visualization/`, `tests/visualization/`
 
-- [x] Graph foundation - React Flow mounted in `AutomataGraph`
-- [x] DFA adapter with canonical `positions` set on each node (and `nfaStates` compatibility alias)
-- [x] Deterministic BFS layered graph layout (`graphLayout.ts`)
-- [x] Syntax Tree Graph (`<SyntaxTreeGraph />`) representing operators (`•`, `|`, `*`), symbols, and augmented end-marker (`#`)
-- [x] Deterministic hierarchical tree layout algorithm (`layoutSyntaxTree`) with parent centering
-- [x] Custom `SyntaxTreeNode` with leaf position badges (`[p]`), `#` distinction, and analysis tooltips (nullable, firstpos, lastpos)
-- [x] Reusable `PositionBadge` and `PositionTable` displaying 1-based leaf positions and distinguishing `#`
-- [x] `AstAnalysisTable` displaying authoritative nullable, firstpos, and lastpos calculations
-- [x] `FollowposTable` displaying followpos sets with empty set (`∅`) handling and interactive row selection
-- [x] `DfaPositionMapping` displaying DFA states with their syntax-tree leaf position subsets `{1, 2, 3}`
-- [x] DFA graph (`<DfaGraph />`) displaying states with syntax-tree position subsets (`q0\n{1,2,3}`) without NFA references
-- [x] Minimized DFA graph displaying merged state position subsets
-- [x] Node styling - single border, double border for accepting states, incoming start arrow (`→`)
-- [x] Edge styling - labels, arrowheads, self-loops, back-edge routing
-- [x] Merged parallel transitions (`a, b`)
-- [x] Graph controls - zoom in, zoom out, fit, reset
-- [x] Context-aware `GraphLegend` for both Syntax Tree and DFA graphs
-- [x] Direct simulation playback props (`activeStateId`, `highlightedStateIds`, `highlightedTransition`)
-- [x] Responsive graph canvas and styling across light and dark themes
-- [x] Comprehensive visualization tests (63 tests across 5 test suites)
+### 1. Direct RE → DFA Pipeline Deliverables (Dragon Book Algorithm 3.36) [COMPLETE]
+
+- [x] **Syntax Tree Visualization (`<SyntaxTreeGraph />`)**:
+  - [x] React Flow v12 canvas with pan, zoom, fit-view, and reset controls
+  - [x] Node rendering for union (`|`), concat (`•`), Kleene star (`*`), and alphabet leaves
+  - [x] Augmented end-marker leaf (`#`) visually distinguished with accent styling
+  - [x] 1-based leaf position badge tags (`[p]`) attached to syntax tree leaf nodes
+  - [x] Accessible tooltips exposing node ID, nullable, firstpos, and lastpos sets
+- [x] **Deterministic Hierarchical Tree Layout (`treeLayout.ts`)**:
+  - [x] Post-order coordinate assignment with parent horizontal centering over subtrees
+  - [x] Monotonic left-to-right leaf sequencing guaranteeing zero edge crossings
+  - [x] 100% deterministic coordinate stability across re-renders
+- [x] **Analysis & Position Data Tables**:
+  - [x] `PositionBadge` & `PositionTable` displaying 1-based leaf positions and distinguishing `#` from user input
+  - [x] `AstAnalysisTable` formatting node nullable (`true`/`false`), firstpos, and lastpos
+  - [x] `FollowposTable` rendering `followpos(p)` sets with empty set (`∅`) handling and interactive row click selection
+  - [x] `DfaPositionMapping` table mapping each DFA state `q_i` to its syntax-tree position subset `{pos1, pos2, ...}`
+- [x] **Direct DFA & Minimized DFA Automata Graphs (`<DfaGraph />`)**:
+  - [x] Canonical syntax-tree position subset display (`q0\n{1,2,3}`) without NFA references
+  - [x] Double concentric border for accepting states containing end-marker position `#`
+  - [x] Incoming start arrow (`→`) pointing from outside to start state `firstpos(root)`
+  - [x] Smooth self-loop edge geometry and back-edge routing preventing edge overlap
+  - [x] Merged parallel transitions (`a, b`) for shared source-target pairs
+  - [x] Direct simulation playback props (`activeStateId`, `highlightedStateIds`, `highlightedTransition`)
+  - [x] Context-aware `GraphLegend` explaining states, position sets, and simulation highlights
+- [x] **Accessibility, Styling & Testing**:
+  - [x] Responsive layout with design tokens from `variables.css` across light and dark themes
+  - [x] Accessible controls and ARIA graphics-symbol descriptions on states and nodes
+  - [x] Comprehensive test suite: 63 tests across 5 test suites (all passing)
+  - [x] Clean public API exported from `src/visualization/index.ts`
+
+### 2. Phase 3 UI Integration Support [IN PROGRESS / READY]
+
+- [x] Export unified visualization components and types from `src/visualization/index.ts`
+- [ ] Connect `SyntaxTreeGraph`, `PositionTable`, `AstAnalysisTable`, and `FollowposTable` into Person 3's step navigation tabs
+- [ ] Wire simulation playback engine directly into `DfaGraph`'s `activeStateId` and `highlightedTransition` props
+- [ ] Verify graph container queries and height responsiveness across mobile (360px), tablet (768px), and desktop (1440px)
+
+### 3. Advanced Educational & Visual Enhancements (Future Value-Add)
+
+- [ ] **Cross-Diagram Interactive Highlighting (Tree ↔ Table ↔ DFA)**:
+  - [ ] Hovering/clicking a leaf node in `SyntaxTreeGraph` highlights its row in `FollowposTable` and `PositionTable`
+  - [ ] Hovering a position in `FollowposTable` highlights all DFA states in `DfaGraph` whose position sets contain it
+  - [ ] Hovering a DFA state in `DfaGraph` highlights its constituent leaf positions in `SyntaxTreeGraph`
+- [ ] **Direct DFA vs. Minimized DFA Comparison View**:
+  - [ ] Side-by-side visualization showing partition refinement and which direct DFA states were merged
+- [ ] **High-Resolution Diagram Export**:
+  - [ ] One-click export buttons to download `SyntaxTreeGraph` and `DfaGraph` as high-resolution PNG or SVG for student coursework, homework, and presentations
+- [ ] **Simulation Edge Animation**:
+  - [ ] Animated active token or pulse traveling along transition edges during string simulation playback
+- [ ] **State Machine Keyboard Traversal**:
+  - [ ] Arrow-key navigation between adjacent states following transitions (WCAG 2.1 AA enhancement)
+- [ ] **MiniMap Overview**:
+  - [ ] Toggleable MiniMap navigator for complex regular expressions generating large trees or automata
+- [ ] **Zoom-to-Fit on Step Change**:
+  - [ ] Automatically smooth-pan and fit the active diagram when users navigate between pipeline tabs
 
 ## UI / Application - Person 3
 
@@ -88,13 +124,14 @@ Files: `src/components/`, `src/pages/`, `src/hooks/`, `src/context/`,
 - [ ] Tokens display
 - [ ] Explicit concatenation display
 - [ ] Postfix display
-- [ ] NFA information panel
-- [ ] DFA information panel
-- [ ] NFA transition table with an eps column
+- [ ] Syntax Tree & AST analysis view (mounting `<SyntaxTreeGraph />` and `<AstAnalysisTable />`)
+- [ ] Position numbering view (mounting `<PositionTable />`)
+- [ ] Followpos view (mounting `<FollowposTable />`)
+- [ ] Direct DFA view (mounting `<DfaGraph />` and `<DfaPositionMapping />`)
 - [ ] DFA transition table
-- [ ] DFA state mapping table
-- [ ] Algorithm explanations
-- [ ] String simulator UI with the trace
+- [ ] Minimized DFA view with transition table
+- [ ] Algorithm explanations for each Dragon Book step
+- [ ] String simulator UI with playback controls (play, pause, step forward/backward) and trace
 - [ ] Error states
 - [ ] Loading state
 - [ ] Empty state

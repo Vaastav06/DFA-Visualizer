@@ -57,7 +57,7 @@ Blocked:
 
 Notes:
 
-- **`compileRegex` is ready.** Direct RE → DFA construction produces clean minimal DFAs directly
+- **`compileRegex` is ready on `main`.** Direct RE → DFA construction produces clean minimal DFAs directly
   from the syntax tree without generating an intermediate ε-NFA.
 - `DFAState.positions` is the canonical representation. `nfaStates` is preserved as an identical
   alias for backwards compatibility with visualization and UI components.

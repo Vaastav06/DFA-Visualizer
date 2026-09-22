@@ -70,17 +70,76 @@ export interface NFA {
 }
 
 /**
+ * Syntax tree node types for direct regular expression to DFA construction.
+ */
+export type SyntaxNodeType = 'symbol' | 'union' | 'concat' | 'star';
+
+/**
+ * A node in the augmented syntax tree.
+ */
+export interface SyntaxNode {
+  id: number;
+  type: SyntaxNodeType;
+  symbol?: string;
+  position?: number;
+  left?: SyntaxNode;
+  right?: SyntaxNode;
+  nullable: boolean;
+  firstpos: number[];
+  lastpos: number[];
+}
+
+/**
+ * An entry in the leaf position table.
+ */
+export interface PositionInfo {
+  position: number;
+  symbol: string;
+}
+
+/**
+ * Analysis summary for a syntax node or tree root.
+ */
+export interface SyntaxAnalysis {
+  nullable: boolean;
+  firstpos: number[];
+  lastpos: number[];
+}
+
+/**
+ * Per-node analysis entry.
+ */
+export interface NodeAnalysis {
+  nodeId: number;
+  nullable: boolean;
+  firstpos: number[];
+  lastpos: number[];
+}
+
+/**
+ * An entry in the followpos table for a leaf position.
+ */
+export interface FollowPosEntry {
+  position: number;
+  symbol: string;
+  followpos: number[];
+}
+
+/**
  * One state of a DFA.
  *
- * `nfaStates` records the subset of NFA state ids this DFA state was built from
- * during subset construction. It is what the UI shows in the "DFA mapping"
- * table. After minimization the array holds the union of the merged states'
- * subsets, so it stays meaningful but is no longer a single subset-construction
- * result.
+ * In the direct RE -> DFA construction, `positions` records the canonical,
+ * sorted subset of syntax-tree leaf positions this state represents.
  */
 export interface DFAState {
   id: number;
-  nfaStates: number[];
+  /** Authoritative syntax-tree leaf positions represented by this DFA state. */
+  positions: number[];
+  /**
+   * @deprecated
+   * Legacy compatibility alias. Must always equal `positions`.
+   */
+  nfaStates?: number[];
   isAccepting: boolean;
 }
 
@@ -90,8 +149,7 @@ export interface DFAState {
  * Invariants:
  *  - `transitions` contains no epsilon (`symbol` is never `null`)
  *  - for each state and each symbol of `alphabet` there is at most one
- *    transition (exactly one if the DFA is total — see docs/COMPILER_PIPELINE.md
- *    for the dead-state policy)
+ *    transition (partial DFA: missing transition means reject)
  *  - `acceptStates` agrees with `states[i].isAccepting`
  */
 export interface DFA {
@@ -104,7 +162,16 @@ export interface DFA {
 
 /** Stable identifiers for the pipeline stages the UI can step through. */
 export type CompilationStepId =
-  'input' | 'tokens' | 'concatenation' | 'postfix' | 'nfa' | 'dfa' | 'minimized' | 'simulation';
+  | 'input'
+  | 'tokens'
+  | 'concatenation'
+  | 'postfix'
+  | 'syntaxTree'
+  | 'followpos'
+  | 'dfa'
+  | 'minimized'
+  | 'simulation'
+  | 'nfa';
 
 /**
  * A human-readable description of one pipeline stage, produced by the compiler
@@ -129,14 +196,26 @@ export interface CompilationResult {
   explicitConcatenation: string;
   /** The postfix (reverse Polish) form produced by the shunting-yard pass. */
   postfix: string;
-  /** Thompson-construction epsilon-NFA. */
-  nfa: NFA;
-  /** DFA from subset construction (before minimization). */
+  /** Augmented syntax tree rooted with concatenation to end-marker #. */
+  syntaxTree: SyntaxNode;
+  /** Leaf positions assigned left-to-right to symbols and the end-marker. */
+  positions: PositionInfo[];
+  /** Analysis (nullable, firstpos, lastpos) of the syntax tree root. */
+  analysis: SyntaxAnalysis;
+  /** Complete followpos table for every leaf position. */
+  followpos: FollowPosEntry[];
+  /** DFA directly constructed from syntax tree position sets. */
   dfa: DFA;
   /** DFA after minimization. */
   minimizedDfa: DFA;
   /** Ordered explanations of each stage, for the UI's step navigation. */
   steps: CompilationStep[];
+  /**
+   * @deprecated
+   * Legacy NFA field retained for fixture compatibility.
+   * Not produced by direct RE -> DFA compilation.
+   */
+  nfa?: NFA;
 }
 
 /* ------------------------------------------------------------------ */
@@ -171,6 +250,10 @@ export interface SimulationResult {
    * `steps.length + 1` unless the run was rejected early.
    */
   path: number[];
+  /** Total characters consumed before accepting or halting early. */
+  consumed: number;
+  /** Description of rejection or error reason, if any. */
+  error?: string;
   /** Populated when the run stopped early (symbol outside the alphabet, or no transition). */
   rejectedAt?: number;
 }

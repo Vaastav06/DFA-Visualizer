@@ -7,27 +7,8 @@
  * that structural assertions miss.
  */
 
-import { epsilonClosure, move } from '../../../src/compiler/epsilonClosure';
 import { simulate } from '../../../src/compiler/simulator';
 import type { DFA, NFA } from '../../../src/compiler/types';
-
-/**
- * Runs `input` through an epsilon-NFA by tracking the SET of active states -
- * the textbook on-the-fly simulation, and deliberately not a reimplementation
- * of subset construction.
- */
-export function nfaAccepts(nfa: NFA, input: string): boolean {
-  let current = epsilonClosure(nfa, [nfa.startState]);
-
-  for (const symbol of input) {
-    current = epsilonClosure(nfa, move(nfa, current, symbol));
-    if (current.length === 0) {
-      return false;
-    }
-  }
-
-  return current.some((state) => nfa.acceptStates.includes(state));
-}
 
 /** Convenience wrapper so tests read the same way for both automaton kinds. */
 export function dfaAccepts(dfa: DFA, input: string): boolean {

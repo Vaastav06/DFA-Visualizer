@@ -2,17 +2,11 @@
 
 import { describe, expect, it } from 'vitest';
 import { simulate } from '../../src/compiler/simulator';
-import { subsetConstruction } from '../../src/compiler/subsetConstruction';
-import { thompsonConstruction } from '../../src/compiler/thompson';
-import { infixToPostfix } from '../../src/compiler/infixToPostfix';
-import { insertExplicitConcatenation } from '../../src/compiler/explicitConcatenation';
-import { tokenize } from '../../src/compiler/tokenizer';
+import { compileRegex } from '../../src/compiler/compiler';
 import type { DFA } from '../../src/compiler/types';
 
 function buildDfa(regex: string): DFA {
-  return subsetConstruction(
-    thompsonConstruction(infixToPostfix(insertExplicitConcatenation(tokenize(regex))))
-  );
+  return compileRegex(regex).dfa;
 }
 
 describe('acceptance', () => {

@@ -7,6 +7,7 @@
  */
 
 import { useState, type FormEvent } from 'react';
+import '../styles/components/RegexInput.css';
 
 interface RegexInputProps {
   value?: string;

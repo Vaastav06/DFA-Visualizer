@@ -63,8 +63,16 @@ a {
 }
 
 button {
+  appearance: none;
+  -webkit-appearance: none;
   font: inherit;
   cursor: pointer;
+}
+
+input {
+  appearance: none;
+  -webkit-appearance: none;
+  font: inherit;
 }
 
 button:disabled {
@@ -139,11 +147,17 @@ caption {
 /* ---------- buttons ---------- */
 
 .button {
+  appearance: none;
+  -webkit-appearance: none;
   padding: var(--space-2) var(--space-4);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
   background: var(--surface);
   color: var(--text-primary);
+}
+
+.button:hover:not(:disabled) {
+  border-color: var(--accent);
 }
 
 .button--primary {
@@ -154,6 +168,7 @@ caption {
 
 .button--primary:hover:not(:disabled) {
   background: var(--accent-hover);
+  border-color: var(--accent-hover);
 }
 
 /* ---------- shared states ---------- */
@@ -177,6 +192,23 @@ caption {
 
 .error-display__message {
   margin: 0;
+}
+
+.error-display__dismiss {
+  appearance: none;
+  -webkit-appearance: none;
+  margin-top: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+}
+
+.error-display__dismiss:hover:not(:disabled) {
+  background: var(--accent-subtle);
+  border-color: var(--accent);
 }
 
 @media (max-width: 640px) {

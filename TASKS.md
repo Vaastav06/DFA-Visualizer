@@ -56,21 +56,25 @@ Files: `src/compiler/`, `tests/compiler/`
 Files: `src/visualization/`, `tests/visualization/`
 
 - [x] Graph foundation - React Flow mounted in `AutomataGraph`
-- [x] NFA adapter
-- [x] DFA adapter, with `nfaStates` on each node
-- [x] Graph layout - BFS layering, deterministic
-- [x] NFA graph
-- [x] DFA graph
-- [x] Minimized DFA graph
-- [x] Node styling - single border, double border, start arrow
-- [x] Edge styling - labels, arrowheads, self-loops
-- [x] eps transitions - dashed, labelled with the glyph
-- [x] Merged parallel transitions
-- [x] Graph controls - zoom, pan, fit, reset
-- [x] Graph legend
-- [x] Responsive graph
-- [x] Highlighting from the `highlight` prop
-- [x] Visualization tests
+- [x] DFA adapter with canonical `positions` set on each node (and `nfaStates` compatibility alias)
+- [x] Deterministic BFS layered graph layout (`graphLayout.ts`)
+- [x] Syntax Tree Graph (`<SyntaxTreeGraph />`) representing operators (`•`, `|`, `*`), symbols, and augmented end-marker (`#`)
+- [x] Deterministic hierarchical tree layout algorithm (`layoutSyntaxTree`) with parent centering
+- [x] Custom `SyntaxTreeNode` with leaf position badges (`[p]`), `#` distinction, and analysis tooltips (nullable, firstpos, lastpos)
+- [x] Reusable `PositionBadge` and `PositionTable` displaying 1-based leaf positions and distinguishing `#`
+- [x] `AstAnalysisTable` displaying authoritative nullable, firstpos, and lastpos calculations
+- [x] `FollowposTable` displaying followpos sets with empty set (`∅`) handling and interactive row selection
+- [x] `DfaPositionMapping` displaying DFA states with their syntax-tree leaf position subsets `{1, 2, 3}`
+- [x] DFA graph (`<DfaGraph />`) displaying states with syntax-tree position subsets (`q0\n{1,2,3}`) without NFA references
+- [x] Minimized DFA graph displaying merged state position subsets
+- [x] Node styling - single border, double border for accepting states, incoming start arrow (`→`)
+- [x] Edge styling - labels, arrowheads, self-loops, back-edge routing
+- [x] Merged parallel transitions (`a, b`)
+- [x] Graph controls - zoom in, zoom out, fit, reset
+- [x] Context-aware `GraphLegend` for both Syntax Tree and DFA graphs
+- [x] Direct simulation playback props (`activeStateId`, `highlightedStateIds`, `highlightedTransition`)
+- [x] Responsive graph canvas and styling across light and dark themes
+- [x] Comprehensive visualization tests (63 tests across 5 test suites)
 
 ## UI / Application - Person 3
 

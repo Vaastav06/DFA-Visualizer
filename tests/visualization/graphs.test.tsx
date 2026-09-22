@@ -7,8 +7,9 @@
 
 import { describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { DfaGraph, NfaGraph } from '../../src/visualization';
+import { DfaGraph, NfaGraph, SyntaxTreeGraph } from '../../src/visualization';
 import {
+  MOCK_COMPILATION_RESULT,
   MOCK_DFA,
   MOCK_DFA_WITH_SELF_LOOP,
   MOCK_MINIMIZED_DFA,
@@ -107,26 +108,29 @@ describe('<DfaGraph />', () => {
     expect(screen.getByText('q1')).toBeInTheDocument();
   });
 
-  it('shows nfaStates mapping in node titles for DFA states', () => {
+  it('shows positions mapping in node titles and labels for DFA states', () => {
     render(<DfaGraph dfa={MOCK_DFA} />);
 
-    // MOCK_DFA q0 = {0, 1, 3}
-    const node0 = screen.getByTitle('{0, 1, 3}');
+    // MOCK_DFA q0 = positions {0, 1, 3}
+    const node0 = screen.getByTitle(/Positions: \{0, 1, 3\}/);
     expect(node0).toBeInTheDocument();
     expect(node0).toHaveTextContent('q0');
+    expect(node0).toHaveTextContent('{0,1,3}');
 
-    // MOCK_DFA q1 = {2, 5}
-    const node1 = screen.getByTitle('{2, 5}');
+    // MOCK_DFA q1 = positions {2, 5}
+    const node1 = screen.getByTitle(/Positions: \{2, 5\}/);
     expect(node1).toBeInTheDocument();
     expect(node1).toHaveTextContent('q1');
+    expect(node1).toHaveTextContent('{2,5}');
   });
 
-  it('renders DFA legend explaining subset mappings', () => {
+  it('renders DFA legend explaining position sets and active states', () => {
     render(<DfaGraph dfa={MOCK_DFA} />);
 
     expect(screen.getByText(/start state/i)).toBeInTheDocument();
     expect(screen.getByText(/accepting state/i)).toBeInTheDocument();
-    expect(screen.getByText(/each state maps to a subset of NFA states/i)).toBeInTheDocument();
+    expect(screen.getByText(/leaf position set/i)).toBeInTheDocument();
+    expect(screen.getByText(/active \/ highlighted/i)).toBeInTheDocument();
     expect(screen.queryByText(/ε-transition/i)).not.toBeInTheDocument();
   });
 
@@ -135,7 +139,7 @@ describe('<DfaGraph />', () => {
     expect(screen.getByText('q0')).toBeInTheDocument();
   });
 
-  it('applies highlighting to active states and transitions', () => {
+  it('applies highlighting to active states and transitions via highlight prop', () => {
     const { container } = render(
       <DfaGraph
         dfa={MOCK_DFA}
@@ -149,6 +153,25 @@ describe('<DfaGraph />', () => {
     const highlightedNode = container.querySelector('.state-node--highlighted');
     expect(highlightedNode).toBeInTheDocument();
     expect(highlightedNode).toHaveTextContent('q1');
+  });
+
+  it('supports direct simulation props activeStateId and highlightedStateIds', () => {
+    const { container } = render(
+      <DfaGraph
+        dfa={MOCK_DFA}
+        activeStateId={1}
+        highlightedStateIds={[2]}
+        highlightedTransition={{ from: 0, to: 1, symbol: 'a' }}
+      />
+    );
+
+    const activeNode = container.querySelector('.state-node--active');
+    expect(activeNode).toBeInTheDocument();
+    expect(activeNode).toHaveTextContent('q1');
+
+    const highlightedNode = container.querySelector('.state-node--highlighted');
+    expect(highlightedNode).toBeInTheDocument();
+    expect(highlightedNode).toHaveTextContent('q2');
   });
 
   it('calls onStateClick callback when a state node is clicked', () => {
@@ -171,5 +194,64 @@ describe('<DfaGraph />', () => {
     const selectedNode = container.querySelector('.state-node--selected');
     expect(selectedNode).toBeInTheDocument();
     expect(selectedNode).toHaveTextContent('q1');
+  });
+});
+
+describe('<SyntaxTreeGraph />', () => {
+  it('renders the empty state when tree is null or undefined', () => {
+    render(<SyntaxTreeGraph tree={null} />);
+    expect(screen.getByRole('status')).toBeInTheDocument();
+    expect(screen.getByText(/No syntax tree available yet/i)).toBeInTheDocument();
+  });
+
+  it('renders syntax tree with nodes, controls, and legend', () => {
+    render(<SyntaxTreeGraph tree={MOCK_COMPILATION_RESULT.syntaxTree} />);
+
+    expect(screen.getByRole('group', { name: /graph controls/i })).toBeInTheDocument();
+    expect(screen.getByRole('list', { name: /syntax tree legend/i })).toBeInTheDocument();
+    expect(screen.getByText(/operator node/i)).toBeInTheDocument();
+    expect(screen.getByText(/alphabet symbol/i)).toBeInTheDocument();
+    expect(screen.getByText(/augmented end-marker/i)).toBeInTheDocument();
+    expect(screen.getByText(/leaf position/i)).toBeInTheDocument();
+  });
+
+  it('renders symbols and augmented end-marker leaf nodes with position badges', () => {
+    const { container } = render(<SyntaxTreeGraph tree={MOCK_COMPILATION_RESULT.syntaxTree} />);
+
+    // End-marker node #
+    const endNode = container.querySelector('.syntax-tree-node--end-marker');
+    expect(endNode).toBeInTheDocument();
+    expect(endNode).toHaveTextContent('#');
+
+    // Position badge on leaf node
+    const posBadges = container.querySelectorAll('.syntax-tree-node__pos');
+    expect(posBadges.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('highlights nodes matching highlightedPositions', () => {
+    const { container } = render(
+      <SyntaxTreeGraph tree={MOCK_COMPILATION_RESULT.syntaxTree} highlightedPositions={[1]} />
+    );
+
+    const highlighted = container.querySelector('.syntax-tree-node--highlighted');
+    expect(highlighted).toBeInTheDocument();
+    expect(highlighted).toHaveTextContent('a');
+  });
+
+  it('triggers onNodeClick callback when a node is clicked', () => {
+    const onNodeClick = vi.fn();
+    const { container } = render(
+      <SyntaxTreeGraph tree={MOCK_COMPILATION_RESULT.syntaxTree} onNodeClick={onNodeClick} />
+    );
+
+    const endNode = container.querySelector('.syntax-tree-node--end-marker')!;
+    expect(endNode).toBeInTheDocument();
+    fireEvent.click(endNode);
+
+    expect(onNodeClick).toHaveBeenCalled();
+    expect(onNodeClick).toHaveBeenCalledWith(
+      4,
+      expect.objectContaining({ nodeId: 4, label: '#', isEndMarker: true })
+    );
   });
 });

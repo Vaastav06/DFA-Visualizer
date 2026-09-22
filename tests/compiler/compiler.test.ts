@@ -12,9 +12,7 @@ import { compileRegex, simulate, isCompilerError, PIPELINE_STEPS } from '../../s
 import {
   allStringsUpTo,
   assertDfaInvariants,
-  assertNfaInvariants,
   dfaAccepts,
-  nfaAccepts,
 } from './support/automata';
 
 const EXPRESSIONS = ['a', 'a|b', 'ab', 'a*', '(a|b)*', '(a|b)*abb', 'a(b|c)*', '(a|b)(c|d)'];
@@ -27,7 +25,10 @@ describe('the shape of a CompilationResult', () => {
     expect(result.tokens.length).toBeGreaterThan(0);
     expect(typeof result.explicitConcatenation).toBe('string');
     expect(typeof result.postfix).toBe('string');
-    expect(result.nfa.states.length).toBeGreaterThan(0);
+    expect(result.syntaxTree).toBeDefined();
+    expect(result.positions.length).toBeGreaterThan(0);
+    expect(result.analysis).toBeDefined();
+    expect(result.followpos.length).toBeGreaterThan(0);
     expect(result.dfa.states.length).toBeGreaterThan(0);
     expect(result.minimizedDfa.states.length).toBeGreaterThan(0);
     expect(result.steps.length).toBeGreaterThan(0);
@@ -35,7 +36,6 @@ describe('the shape of a CompilationResult', () => {
 
   it.each(EXPRESSIONS)('%s produces well-formed automata', (regex) => {
     const result = compileRegex(regex);
-    expect(() => assertNfaInvariants(result.nfa)).not.toThrow();
     expect(() => assertDfaInvariants(result.dfa)).not.toThrow();
     expect(() => assertDfaInvariants(result.minimizedDfa)).not.toThrow();
   });
@@ -49,7 +49,9 @@ describe('the shape of a CompilationResult', () => {
     expect(result.tokens).toEqual(['(', 'a', '|', 'b', ')', '*', 'a', 'b', 'b']);
     expect(result.explicitConcatenation).toBe('(a|b)*.a.b.b');
     expect(result.postfix).toBe('ab|*a.b.b.');
-    expect(result.dfa.states).toHaveLength(5);
+    expect(result.positions).toHaveLength(6);
+    expect(result.followpos).toHaveLength(6);
+    expect(result.dfa.states).toHaveLength(4);
     expect(result.minimizedDfa.states).toHaveLength(4);
   });
 });
@@ -84,21 +86,18 @@ describe('the compilation steps', () => {
   });
 });
 
-describe('language equivalence across all three automata', () => {
-  it.each(EXPRESSIONS)('%s: NFA, DFA and minimized DFA agree on every string', (regex) => {
-    const { nfa, dfa, minimizedDfa } = compileRegex(regex);
+describe('language equivalence between direct DFA and minimized DFA', () => {
+  it.each(EXPRESSIONS)('%s: DFA and minimized DFA agree on every string', (regex) => {
+    const { dfa, minimizedDfa } = compileRegex(regex);
 
-    for (const input of allStringsUpTo(nfa.alphabet, 4)) {
-      const viaNfa = nfaAccepts(nfa, input);
-      expect({ input, dfa: dfaAccepts(dfa, input) }).toEqual({ input, dfa: viaNfa });
-      expect({ input, min: dfaAccepts(minimizedDfa, input) }).toEqual({ input, min: viaNfa });
+    for (const input of allStringsUpTo(dfa.alphabet, 4)) {
+      expect(dfaAccepts(minimizedDfa, input)).toBe(dfaAccepts(dfa, input));
     }
   });
 
   it('agrees on strings containing symbols outside the alphabet', () => {
-    const { nfa, dfa, minimizedDfa } = compileRegex('(a|b)*');
+    const { dfa, minimizedDfa } = compileRegex('(a|b)*');
     for (const input of ['z', 'az', 'abz', 'zab']) {
-      expect(nfaAccepts(nfa, input)).toBe(false);
       expect(dfaAccepts(dfa, input)).toBe(false);
       expect(dfaAccepts(minimizedDfa, input)).toBe(false);
     }
@@ -194,9 +193,107 @@ describe('errors', () => {
   });
 });
 
+describe('textbook verification for (a|b)*abb#', () => {
+  it('verifies all 9 components of direct construction on (a|b)*abb#', () => {
+    const res = compileRegex('(a|b)*abb');
+
+    // 1. Syntax tree
+    expect(res.syntaxTree.type).toBe('concat');
+    expect(res.syntaxTree.right?.symbol).toBe('#');
+
+    // 2. Position numbering
+    expect(res.positions).toEqual([
+      { position: 1, symbol: 'a' },
+      { position: 2, symbol: 'b' },
+      { position: 3, symbol: 'a' },
+      { position: 4, symbol: 'b' },
+      { position: 5, symbol: 'b' },
+      { position: 6, symbol: '#' },
+    ]);
+
+    // 3. Nullable
+    expect(res.analysis.nullable).toBe(false);
+
+    // 4. Firstpos
+    expect(res.analysis.firstpos).toEqual([1, 2, 3]);
+
+    // 5. Lastpos
+    expect(res.analysis.lastpos).toEqual([6]);
+
+    // 6. Followpos
+    expect(res.followpos).toEqual([
+      { position: 1, symbol: 'a', followpos: [1, 2, 3] },
+      { position: 2, symbol: 'b', followpos: [1, 2, 3] },
+      { position: 3, symbol: 'a', followpos: [4] },
+      { position: 4, symbol: 'b', followpos: [5] },
+      { position: 5, symbol: 'b', followpos: [6] },
+      { position: 6, symbol: '#', followpos: [] },
+    ]);
+
+    // 7. Initial DFA state
+    expect(res.dfa.startState).toBe(0);
+    expect(res.dfa.states[0].positions).toEqual([1, 2, 3]);
+
+    // 8. DFA transitions
+    const transitions = res.dfa.transitions.map((t) => `${t.from}-${t.symbol}->${t.to}`).sort();
+    expect(transitions).toEqual([
+      '0-a->1',
+      '0-b->0',
+      '1-a->1',
+      '1-b->2',
+      '2-a->1',
+      '2-b->3',
+      '3-a->1',
+      '3-b->0',
+    ]);
+
+    // 9. Accepting states
+    expect(res.dfa.acceptStates).toEqual([3]);
+    expect(res.dfa.states[3].positions).toContain(6);
+    expect(res.dfa.states[3].isAccepting).toBe(true);
+  });
+});
+
+describe('explicit required strings language equivalence', () => {
+  const explicitTestCases = [
+    {
+      regex: '(a|b)*abb',
+      strings: ['abb', 'aabb', 'babb', 'ab', 'a', ''],
+    },
+    {
+      regex: 'a*',
+      strings: ['', 'a', 'aa', 'b'],
+    },
+    {
+      regex: '(a|b)*',
+      strings: ['', 'a', 'b', 'ab', 'ba'],
+    },
+    {
+      regex: 'a(b|c)*',
+      strings: ['a', 'ab', 'ac', 'abc', 'b'],
+    },
+    {
+      regex: '(a|b)(c|d)',
+      strings: ['ac', 'ad', 'bc', 'bd', 'a', 'c'],
+    },
+  ];
+
+  it.each(explicitTestCases)('$regex: direct DFA and minimized DFA have identical acceptance on required strings', ({ regex, strings }) => {
+    const { dfa, minimizedDfa } = compileRegex(regex);
+    for (const str of strings) {
+      const directVerdict = simulate(dfa, str).accepted;
+      const minVerdict = simulate(minimizedDfa, str).accepted;
+      expect({ str, minVerdict }).toEqual({ str, minVerdict: directVerdict });
+    }
+  });
+});
+
 describe('determinism', () => {
-  it.each(EXPRESSIONS)('%s compiles identically every time', (regex) => {
-    expect(compileRegex(regex)).toEqual(compileRegex(regex));
+  it.each(EXPRESSIONS)('%s compiles identically every time (deep equality and JSON stringify)', (regex) => {
+    const run1 = compileRegex(regex);
+    const run2 = compileRegex(regex);
+    expect(run1).toEqual(run2);
+    expect(JSON.stringify(run1)).toBe(JSON.stringify(run2));
   });
 
   it('does not depend on what was compiled before', () => {
@@ -204,6 +301,7 @@ describe('determinism', () => {
     compileRegex('a(b|c)*');
     compileRegex('(a|b)(c|d)');
     expect(compileRegex('(a|b)*abb')).toEqual(first);
+    expect(JSON.stringify(compileRegex('(a|b)*abb'))).toBe(JSON.stringify(first));
   });
 });
 

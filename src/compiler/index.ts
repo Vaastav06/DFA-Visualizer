@@ -1,22 +1,40 @@
 /**
  * PUBLIC API OF THE COMPILER MODULE.
  *
- * Persons 2 and 3 import from `@/compiler` (or `@compiler/...`) and from
- * nothing deeper. Anything not re-exported here is private to Person 1 and may
- * change without notice.
- *
- * Adding or removing an export here is a contract change: announce it, and
- * update docs/API_CONTRACT.md in the same commit.
+ * Direct Regular Expression -> DFA Construction.
  *
  *   import { compileRegex, simulate } from '@/compiler';
- *   import type { CompilationResult, NFA, DFA } from '@/compiler';
+ *   import type { CompilationResult, DFA, DFAState } from '@/compiler';
  */
 
-/* ---- the primary entry point ---- */
+/* ---- primary entry point ---- */
 export { compileRegex, PIPELINE_STEPS } from './compiler';
 
-/* ---- on-demand string simulation ---- */
-export { simulate } from './simulator';
+/* ---- pipeline stage functions ---- */
+export { validate, validate as validateRegex } from './validator';
+export { tokenize, isLiteral, collectAlphabet } from './tokenizer';
+export {
+  insertExplicitConcatenation,
+  insertExplicitConcatenation as addExplicitConcatenation,
+  CONCAT_OPERATOR,
+} from './explicitConcatenation';
+export { infixToPostfix, PRECEDENCE } from './infixToPostfix';
+export { buildSyntaxTree, END_MARKER } from './syntaxTree';
+export { assignPositions } from './positions';
+export type { PositionAssignmentResult } from './positions';
+export { calculateNullable } from './nullable';
+export { calculateFirstpos, unionPositions } from './firstpos';
+export { calculateLastpos } from './lastpos';
+export { calculateFollowpos } from './followpos';
+export {
+  constructDirectDFA,
+  constructDirectDFA as constructDirectDfa,
+  positionSetKey,
+} from './directDfa';
+export { minimizeDfa, minimizeDfa as minimizeDFA } from './minimizeDfa';
+
+/* ---- string simulation ---- */
+export { simulate, simulateDFA } from './simulator';
 
 /* ---- errors ---- */
 export {
@@ -38,16 +56,15 @@ export type {
   DFA,
   DFAState,
   Epsilon,
+  FollowPosEntry,
   NFA,
+  NodeAnalysis,
+  PositionInfo,
   SimulationResult,
   SimulationStep,
   Symbol,
+  SyntaxAnalysis,
+  SyntaxNode,
+  SyntaxNodeType,
   Transition,
 } from './types';
-
-/*
- * Intentionally NOT exported — internal stages, owned by Person 1:
- *   validate, tokenize, insertExplicitConcatenation, infixToPostfix,
- *   thompsonConstruction, epsilonClosure, move, subsetConstruction, minimizeDfa
- * They may be imported directly by tests in tests/compiler/ only.
- */

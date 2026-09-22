@@ -6,11 +6,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { minimizeDfa } from '../../src/compiler/minimizeDfa';
-import { subsetConstruction } from '../../src/compiler/subsetConstruction';
-import { thompsonConstruction } from '../../src/compiler/thompson';
-import { infixToPostfix } from '../../src/compiler/infixToPostfix';
-import { insertExplicitConcatenation } from '../../src/compiler/explicitConcatenation';
-import { tokenize } from '../../src/compiler/tokenizer';
+import { compileRegex } from '../../src/compiler/compiler';
 import {
   allStringsUpTo,
   assertDenseIds,
@@ -20,9 +16,7 @@ import {
 import type { DFA } from '../../src/compiler/types';
 
 function buildDfa(regex: string): DFA {
-  return subsetConstruction(
-    thompsonConstruction(infixToPostfix(insertExplicitConcatenation(tokenize(regex))))
-  );
+  return compileRegex(regex).dfa;
 }
 
 const EXPRESSIONS = ['a', 'a|b', 'ab', 'a*', '(a|b)*', '(a|b)*abb', 'a(b|c)*', '(a|b)(c|d)'];
@@ -54,20 +48,19 @@ describe('structural invariants', () => {
 });
 
 describe('merging equivalent states', () => {
-  it('merges the two equivalent accepting states of a|b', () => {
-    // Subset construction gives one accepting state per branch; both accept
-    // exactly the empty continuation, so they are equivalent.
-    expect(buildDfa('a|b').states).toHaveLength(3);
+  it('preserves minimal size of direct DFA for a|b', () => {
+    // Direct construction produces 2 states directly
+    expect(buildDfa('a|b').states).toHaveLength(2);
     expect(minimizeDfa(buildDfa('a|b')).states).toHaveLength(2);
   });
 
-  it('collapses a* to a single state', () => {
-    expect(buildDfa('a*').states).toHaveLength(2);
+  it('preserves single state for a*', () => {
+    expect(buildDfa('a*').states).toHaveLength(1);
     expect(minimizeDfa(buildDfa('a*')).states).toHaveLength(1);
   });
 
-  it('reduces the dragon book DFA for (a|b)*abb from five states to four', () => {
-    expect(buildDfa('(a|b)*abb').states).toHaveLength(5);
+  it('preserves four states for (a|b)*abb', () => {
+    expect(buildDfa('(a|b)*abb').states).toHaveLength(4);
     expect(minimizeDfa(buildDfa('(a|b)*abb')).states).toHaveLength(4);
   });
 
@@ -96,22 +89,22 @@ describe('merging equivalent states', () => {
 });
 
 describe('the merged state mapping', () => {
-  it('unions the NFA subsets of the states it merged', () => {
+  it('unions the positions subsets of the states it merged', () => {
     const dfa = buildDfa('a|b');
     const minimized = minimizeDfa(dfa);
     const mergedAccepting = minimized.states.find((state) => state.isAccepting);
     const originalAccepting = dfa.states.filter((state) => state.isAccepting);
-    const expected = [...new Set(originalAccepting.flatMap((state) => state.nfaStates))].sort(
+    const expected = [...new Set(originalAccepting.flatMap((state) => state.positions))].sort(
       (a, b) => a - b
     );
-    expect(mergedAccepting?.nfaStates).toEqual(expected);
+    expect(mergedAccepting?.positions).toEqual(expected);
   });
 
   it('keeps every subset ascending and duplicate-free', () => {
     for (const regex of EXPRESSIONS) {
       for (const state of minimizeDfa(buildDfa(regex)).states) {
-        expect(state.nfaStates).toEqual([...new Set(state.nfaStates)]);
-        expect(state.nfaStates).toEqual([...state.nfaStates].sort((a, b) => a - b));
+        expect(state.positions).toEqual([...new Set(state.positions)]);
+        expect(state.positions).toEqual([...state.positions].sort((a, b) => a - b));
       }
     }
   });
@@ -138,7 +131,12 @@ function handBuilt(
   alphabet: string[]
 ): DFA {
   return {
-    states: states.map(([id, isAccepting]) => ({ id, nfaStates: [id], isAccepting })),
+    states: states.map(([id, isAccepting]) => ({
+      id,
+      positions: [id],
+      nfaStates: [id],
+      isAccepting,
+    })),
     alphabet,
     startState: states[0][0],
     acceptStates: states.filter(([, isAccepting]) => isAccepting).map(([id]) => id),

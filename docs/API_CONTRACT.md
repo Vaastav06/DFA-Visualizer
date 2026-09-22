@@ -27,7 +27,7 @@ Owner: Person 1.
 
 ### `compileRegex(regex: string): CompilationResult`
 
-The primary entry point. Runs stages 1-8 and returns everything the UI needs.
+The primary entry point. Executes the direct RE → DFA pipeline (stages 1-10) and returns everything the UI needs.
 
 Throws `CompilerError` (or a subclass) and nothing else. Any unexpected failure
 must be wrapped in `InternalCompilerError` before it leaves this function, so
@@ -36,13 +36,18 @@ callers only ever need one catch shape.
 ```ts
 const result = compileRegex('(a|b)*abb');
 result.postfix; // "ab|*a.b.b."
-result.nfa; // NFA
+result.syntaxTree; // SyntaxNode
+result.positions; // PositionInfo[]
+result.analysis; // SyntaxAnalysis
+result.followpos; // FollowPosEntry[]
+result.dfa; // DFA
 result.minimizedDfa; // DFA
 ```
 
 ### `simulate(dfa: DFA, input: string): SimulationResult`
 
-Runs a test string. Exported separately because the UI calls it on demand, not
+Runs a test string against a DFA (also exported under alias `simulateDFA`).
+Exported separately because the UI calls it on demand, not
 during compilation. Does not throw for a rejected string.
 
 ### `PIPELINE_STEPS: readonly CompilationStep[]`
@@ -50,6 +55,23 @@ during compilation. Does not throw for a rejected string.
 The canonical stage list - ids, titles and generic descriptions. Person 3 builds
 the step navigation against this; Person 1 returns run-specific versions in
 `CompilationResult.steps`.
+
+### Pipeline Stage Functions (Exported for Testing and Visual Inspection)
+
+| Function                                             | Stage | Description                                        |
+| ---------------------------------------------------- | ----- | -------------------------------------------------- |
+| `validate(regex)`                                    | 1     | Syntactic validation against allowed language      |
+| `tokenize(regex)`                                    | 2     | Character-by-character tokenization                |
+| `insertExplicitConcatenation(tokens)`                | 3     | Inserts explicit `.` concatenation operators       |
+| `infixToPostfix(tokens)`                             | 4     | Shunting-yard conversion to postfix                |
+| `buildSyntaxTree(postfix)`                           | 5     | Builds augmented AST with end-marker `#`           |
+| `assignPositions(root)`                              | 6     | Left-to-right 1-based leaf position numbering      |
+| `calculateNullable(node)`                            | 7a    | Computes nullable boolean attribute                |
+| `calculateFirstpos(node, analysis)`                  | 7b    | Computes firstpos position set                     |
+| `calculateLastpos(node, analysis)`                   | 7c    | Computes lastpos position set                      |
+| `calculateFollowpos(root, analysis, posCount)`       | 8     | Computes followpos table                           |
+| `constructDirectDFA(root, analysis, followpos, ...)` | 9     | Constructs direct DFA from position sets           |
+| `minimizeDfa(dfa)`                                   | 10    | Moore partition refinement with dead state pruning |
 
 ### Errors
 
@@ -64,15 +86,11 @@ the step navigation against this; Person 1 returns run-specific versions in
 
 ### Types and constants
 
-`EPSILON`, `EPSILON_DISPLAY`, and the types `AlphabetSymbol`,
-`CompilationResult`, `CompilationStep`, `CompilationStepId`, `DFA`, `DFAState`,
-`Epsilon`, `NFA`, `SimulationResult`, `SimulationStep`, `Symbol`, `Transition`.
-
-### Deliberately private
-
-`validate`, `tokenize`, `insertExplicitConcatenation`, `infixToPostfix`,
-`thompsonConstruction`, `epsilonClosure`, `move`, `subsetConstruction`,
-`minimizeDfa`. Person 1 may change their signatures freely.
+`EPSILON`, `EPSILON_DISPLAY`, `END_MARKER`, and the types:
+`AlphabetSymbol`, `CompilationResult`, `CompilationStep`, `CompilationStepId`,
+`DFA`, `DFAState`, `Epsilon`, `FollowPosEntry`, `NFA`, `NodeAnalysis`,
+`PositionInfo`, `SimulationResult`, `SimulationStep`, `Symbol`,
+`SyntaxAnalysis`, `SyntaxNode`, `SyntaxNodeType`, `Transition`.
 
 ---
 

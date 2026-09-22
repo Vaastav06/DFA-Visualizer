@@ -48,9 +48,9 @@ export const MOCK_NFA: NFA = {
  */
 export const MOCK_DFA: DFA = {
   states: [
-    { id: 0, nfaStates: [0, 1, 3], isAccepting: false },
-    { id: 1, nfaStates: [2, 5], isAccepting: true },
-    { id: 2, nfaStates: [4, 5], isAccepting: true },
+    { id: 0, positions: [0, 1, 3], nfaStates: [0, 1, 3], isAccepting: false },
+    { id: 1, positions: [2, 5], nfaStates: [2, 5], isAccepting: true },
+    { id: 2, positions: [4, 5], nfaStates: [4, 5], isAccepting: true },
   ],
   alphabet: ['a', 'b'],
   startState: 0,
@@ -64,8 +64,8 @@ export const MOCK_DFA: DFA = {
 /** {@link MOCK_DFA} with the two equivalent accepting states merged. */
 export const MOCK_MINIMIZED_DFA: DFA = {
   states: [
-    { id: 0, nfaStates: [0, 1, 3], isAccepting: false },
-    { id: 1, nfaStates: [2, 4, 5], isAccepting: true },
+    { id: 0, positions: [0, 1, 3], nfaStates: [0, 1, 3], isAccepting: false },
+    { id: 1, positions: [2, 4, 5], nfaStates: [2, 4, 5], isAccepting: true },
   ],
   alphabet: ['a', 'b'],
   startState: 0,
@@ -78,7 +78,7 @@ export const MOCK_MINIMIZED_DFA: DFA = {
 
 /** A DFA with a self-loop, for testing edge rendering. `a*` over {a}. */
 export const MOCK_DFA_WITH_SELF_LOOP: DFA = {
-  states: [{ id: 0, nfaStates: [0, 1], isAccepting: true }],
+  states: [{ id: 0, positions: [0, 1], nfaStates: [0, 1], isAccepting: true }],
   alphabet: ['a'],
   startState: 0,
   acceptStates: [0],
@@ -91,6 +91,62 @@ export const MOCK_COMPILATION_RESULT: CompilationResult = {
   tokens: ['a', '|', 'b'],
   explicitConcatenation: 'a|b',
   postfix: 'ab|',
+  syntaxTree: {
+    id: 5,
+    type: 'concat',
+    nullable: false,
+    firstpos: [1, 2],
+    lastpos: [3],
+    left: {
+      id: 3,
+      type: 'union',
+      nullable: false,
+      firstpos: [1, 2],
+      lastpos: [1, 2],
+      left: {
+        id: 1,
+        type: 'symbol',
+        symbol: 'a',
+        position: 1,
+        nullable: false,
+        firstpos: [1],
+        lastpos: [1],
+      },
+      right: {
+        id: 2,
+        type: 'symbol',
+        symbol: 'b',
+        position: 2,
+        nullable: false,
+        firstpos: [2],
+        lastpos: [2],
+      },
+    },
+    right: {
+      id: 4,
+      type: 'symbol',
+      symbol: '#',
+      position: 3,
+      nullable: false,
+      firstpos: [3],
+      lastpos: [3],
+    },
+  },
+  positions: [
+    { position: 1, symbol: 'a' },
+    { position: 2, symbol: 'b' },
+    { position: 3, symbol: '#' },
+  ],
+  analysis: {
+    nullable: false,
+    firstpos: [1, 2],
+    lastpos: [3],
+  },
+  followpos: [
+    { position: 1, symbol: 'a', followpos: [3] },
+    { position: 2, symbol: 'b', followpos: [3] },
+    { position: 3, symbol: '#', followpos: [] },
+  ],
   nfa: MOCK_NFA,
   dfa: MOCK_DFA,
   minimizedDfa: MOCK_MINIMIZED_DFA,
@@ -110,8 +166,8 @@ export const MOCK_COMPILATION_RESULT: CompilationResult = {
     },
     {
       id: 'dfa',
-      title: 'DFA (Subset Construction)',
-      description: 'Three deterministic states, one per ε-closed subset.',
+      title: 'DFA (Direct Construction)',
+      description: 'Three deterministic states, one per position set.',
     },
     {
       id: 'minimized',

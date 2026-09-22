@@ -3,8 +3,9 @@
 An interactive web application that converts a regular expression into a DFA and
 shows every stage of the conversion, rather than only the final automaton.
 
-Built as a Compiler Design team project. The goal is to make the classical
-pipeline - Thompson's construction, subset construction, minimization - visible
+Built as a Compiler Design team project. The goal is to make the direct
+Regular Expression → DFA construction pipeline — syntax trees, position numbering,
+nullable, firstpos, lastpos, followpos, direct DFA construction, minimization — visible
 and inspectable, so the algorithms stop being something that happens off-screen.
 
 ## What it does
@@ -15,9 +16,11 @@ and inspectable, so the algorithms stop being something that happens off-screen.
     |-- tokens                  ( a | b ) * a b b
     |-- explicit concatenation  ( a | b ) * . a . b . b
     |-- postfix                 a b | * a . b . b .
-    |-- eps-NFA                 Thompson construction, drawn as a graph
-    |-- DFA                     subset construction, with the state mapping
-    |-- minimized DFA           equivalent states merged
+    |-- syntax tree (#)         augmented AST with leaf positions 1..6
+    |-- node analysis           nullable, firstpos, lastpos for each node
+    |-- followpos table         followpos sets for each position
+    |-- direct DFA              direct DFA states from position subsets
+    |-- minimized DFA           Moore partition refinement with dead state removal
     '-- simulation              run a string, watch it accept or reject
 ```
 
@@ -49,11 +52,10 @@ npm run dev
 
 Requires Node 20.19+ or 22.12+.
 
-> **Current state:** the repository foundation is complete and the application
-> shell runs, but the compiler algorithms, the graph rendering and the full UI
-> are not implemented yet. Pressing **Convert** produces a "not implemented"
-> message - the error path is wired, the algorithms are not written. See
-> [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
+> **Current state:** Person 1 Compiler Core is complete with the direct RE → DFA
+> construction algorithm (syntax trees, position numbering, followpos, direct DFA,
+> minimization, simulation) and full test suite passing. Visualization (Person 2)
+> and UI (Person 3) are in active development. See [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
 
 ## Commands
 

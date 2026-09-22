@@ -105,23 +105,31 @@ Invariants the producer must guarantee and the consumers may rely on:
 ```ts
 interface DFAState {
   id: number;
-  nfaStates: number[]; // the NFA subset this state was built from
+  positions: number[]; // canonical 1-based leaf position numbers
+  /**
+   * @deprecated
+   * Legacy compatibility alias. Must always equal `positions`.
+   */
+  nfaStates?: number[];
   isAccepting: boolean;
 }
 ```
 
-`nfaStates` is ascending and duplicate-free. It is what the "DFA mapping" table
-shows the student:
+`positions` is canonical, ascending and duplicate-free. In direct RE → DFA construction,
+each DFA state corresponds to a set of syntax tree leaf positions. It is what the
+"DFA mapping" table shows the student:
 
 ```text
-q0 = {0, 1, 3}
-q1 = {2, 5}   accepting
+q0 = {1, 2, 3}
+q1 = {1, 2, 3, 4}
+q3 = {1, 2, 3, 6}   accepting (contains end-marker # position 6)
 ```
 
+`nfaStates` is preserved as a deprecated alias that mirrors `positions` identically
+for backward compatibility with legacy visualization adapters.
+
 After minimization a state may represent several original DFA states; its
-`nfaStates` is then the union of theirs. The array stays meaningful (it is still
-"the NFA states this DFA state corresponds to") but it is no longer a single
-subset-construction result. The UI should say so where it matters.
+`positions` is then the deduplicated sorted union of theirs.
 
 ### `DFA`
 
@@ -145,6 +153,65 @@ Additional invariants beyond the NFA ones:
 Note the redundancy between `states[i].isAccepting` and `acceptStates`. Keeping
 both in sync is the producer's job. `tests/compiler/contract.test.ts` checks it.
 
+### `SyntaxNode`
+
+```ts
+type SyntaxNodeType = 'symbol' | 'concat' | 'union' | 'star';
+
+interface SyntaxNode {
+  id: number;
+  type: SyntaxNodeType;
+  symbol?: string; // present for 'symbol' (e.g., 'a', '#')
+  position?: number; // 1-based leaf position (only for symbol nodes)
+  left?: SyntaxNode; // left child for binary nodes, child for unary star
+  right?: SyntaxNode; // right child for binary nodes (concat, union)
+}
+```
+
+Represents the augmented abstract syntax tree `(r)#`. The root node is always a
+concatenation of the input regex with the end-marker `#`.
+
+### `PositionInfo`
+
+```ts
+interface PositionInfo {
+  position: number; // 1-based integer
+  symbol: string; // alphabet symbol or END_MARKER ('#')
+}
+```
+
+Ordered mapping of leaf positions assigned during left-to-right syntax tree traversal.
+
+### `NodeAnalysis` and `SyntaxAnalysis`
+
+```ts
+interface NodeAnalysis {
+  nullable: boolean;
+  firstpos: number[];
+  lastpos: number[];
+}
+
+interface SyntaxAnalysis {
+  [nodeId: number]: NodeAnalysis;
+}
+```
+
+Computed metadata for each node in the syntax tree. `firstpos` and `lastpos` are
+always sorted, deduplicated arrays of 1-based position numbers.
+
+### `FollowPosEntry`
+
+```ts
+interface FollowPosEntry {
+  position: number;
+  symbol: string;
+  followpos: number[];
+}
+```
+
+Row in the followpos table mapping each leaf position to its sorted, deduplicated
+followpos set.
+
 ### `CompilationStep`
 
 ```ts
@@ -167,10 +234,18 @@ interface CompilationResult {
   tokens: string[]; // stage 2 output
   explicitConcatenation: string; // stage 3 output, as a display string
   postfix: string; // stage 4 output, as a display string
-  nfa: NFA; // stage 5 output
-  dfa: DFA; // stage 7 output
-  minimizedDfa: DFA; // stage 8 output
+  syntaxTree: SyntaxNode; // stage 5 output: augmented syntax tree
+  positions: PositionInfo[]; // stage 6 output: 1-based leaf position mapping
+  analysis: SyntaxAnalysis; // stage 7 output: nullable, firstpos, lastpos
+  followpos: FollowPosEntry[]; // stage 8 output: followpos table
+  dfa: DFA; // stage 9 output: direct DFA construction
+  minimizedDfa: DFA; // stage 10 output: minimized DFA
   steps: CompilationStep[];
+  /**
+   * @deprecated
+   * Not produced by direct RE -> DFA compilation. Retained as optional for legacy fixtures.
+   */
+  nfa?: NFA;
 }
 ```
 

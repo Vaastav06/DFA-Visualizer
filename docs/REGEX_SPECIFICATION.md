@@ -25,13 +25,19 @@ In practice: letters and digits.
 **Reserved characters**, which can never be literals:
 
 ```text
-|   *   (   )   .
+|   *   (   )   .   #
 ```
 
 `.` is reserved because the compiler uses it internally as the explicit
 concatenation operator (stage 3). It does NOT mean "any character" here, unlike
 in most regex flavours. This is worth calling out in the UI, because every
 student arrives expecting the other meaning.
+
+`#` is reserved as the internal end-of-input marker used in direct RE → DFA
+construction. The compiler automatically augments the user's expression `r` to
+`(r)#` during syntax tree construction. Users cannot type `#` in expressions;
+it triggers `INVALID_CHARACTER` in validation. It receives its own leaf position
+to determine DFA accepting states, but is never exposed as a user alphabet symbol.
 
 There is no escape syntax. `\*` is not a way to match a literal asterisk; it is
 an invalid character error.
@@ -123,5 +129,6 @@ From `src/data/examples.ts`:
 | `a(b\|c)*`     | an `a` followed by any number of `b` or `c` |
 | `(a\|b)(c\|d)` | one of `a`,`b` then one of `c`,`d`          |
 
-`(a|b)*abb` is the textbook example from the dragon book. Keep it - it produces
-an NFA large enough to be interesting and a DFA small enough to read.
+`(a|b)*abb` is the classic textbook example from the Dragon Book (Aho, Lam, Sethi, Ullman).
+Keep it — it illustrates syntax tree position assignment (6 positions, 1..6), nullable,
+firstpos, lastpos, followpos computation, and directly constructs a clean 4-state DFA.

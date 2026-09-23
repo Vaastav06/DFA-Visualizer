@@ -68,8 +68,9 @@ export interface SyntaxTreeNodeData extends Record<string, unknown> {
 /** Data carried by a `TransitionEdge` in the graph. */
 export interface TransitionEdgeData extends Record<string, unknown> {
   /**
-   * Symbols this edge carries. Parallel transitions between the same pair of
-   * states are merged into one edge labelled `a, b`.
+   * Symbols this edge carries. The NFA adapter merges parallel transitions
+   * between the same pair of states into one edge labelled `a, b`; the DFA
+   * adapter emits one edge per symbol so parallels can be offset visually.
    * Epsilon is stored as `null` and rendered as `ε` (EPSILON CONTRACT).
    */
   symbols: (string | null)[];
@@ -78,6 +79,15 @@ export interface TransitionEdgeData extends Record<string, unknown> {
   isEpsilon: boolean;
   /** Set by the UI while animating a simulation. */
   isHighlighted?: boolean;
+  /** Index of this edge among parallel edges sharing the same undirected pair. */
+  parallelIndex?: number;
+  /** Total parallel edges sharing the same undirected pair (incl. reverse). */
+  parallelCount?: number;
+  /**
+   * Signed vertical control-point offset in **pixels** that separates this
+   * edge from its parallels / reverse edge. `0` when alone on the pair.
+   */
+  parallelOffset?: number;
 }
 
 /** Highlighting a graph can apply while the UI animates a simulation run. */

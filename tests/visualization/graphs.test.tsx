@@ -195,6 +195,24 @@ describe('<DfaGraph />', () => {
     expect(selectedNode).toBeInTheDocument();
     expect(selectedNode).toHaveTextContent('q1');
   });
+
+  it('reveals state details (status and positions) when the state is selected', () => {
+    const { container } = render(<DfaGraph dfa={MOCK_DFA} selectedStateId={1} />);
+
+    const details = container.querySelector('.graph-node-details');
+    expect(details).toBeInTheDocument();
+    expect(details).toHaveTextContent('Accepting');
+    expect(details).toHaveTextContent('Positions: {2, 5}');
+  });
+
+  it('reveals non-accepting and start status for the selected start state', () => {
+    const { container } = render(<DfaGraph dfa={MOCK_DFA} selectedStateId={0} />);
+
+    const details = container.querySelector('.graph-node-details');
+    expect(details).toBeInTheDocument();
+    expect(details).toHaveTextContent('Non-accepting · start');
+    expect(details).toHaveTextContent('Positions: {0, 1, 3}');
+  });
 });
 
 describe('<SyntaxTreeGraph />', () => {
@@ -253,5 +271,18 @@ describe('<SyntaxTreeGraph />', () => {
       4,
       expect.objectContaining({ nodeId: 4, label: '#', isEndMarker: true })
     );
+  });
+
+  it('reveals node analysis details when the node is selected', () => {
+    const { container } = render(
+      <SyntaxTreeGraph tree={MOCK_COMPILATION_RESULT.syntaxTree} selectedNodeId={1} />
+    );
+
+    const details = container.querySelector('.graph-node-details');
+    expect(details).toBeInTheDocument();
+    expect(details).toHaveTextContent('symbol · pos 1');
+    expect(details).toHaveTextContent('Nullable: false');
+    expect(details).toHaveTextContent('Firstpos: {1}');
+    expect(details).toHaveTextContent('Lastpos: {1}');
   });
 });

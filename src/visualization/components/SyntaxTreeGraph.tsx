@@ -5,8 +5,16 @@
  *   <SyntaxTreeGraph tree={result.syntaxTree} />
  */
 
-import { useCallback, useMemo } from 'react';
-import { Background, ReactFlow, ReactFlowProvider, type Edge, type Node } from '@xyflow/react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  Background,
+  ReactFlow,
+  ReactFlowProvider,
+  type Edge,
+  type Node,
+  type OnNodesChange,
+  type XYPosition,
+} from '@xyflow/react';
 
 import type { SyntaxTreeGraphProps, SyntaxTreeNodeData } from '../types';
 import { adaptSyntaxTree } from '../adapters/syntaxTreeAdapter';
@@ -36,11 +44,20 @@ function SyntaxTreeGraphInner({
   const adapted = useMemo(() => adaptSyntaxTree(tree), [tree]);
   const layout = useMemo(() => layoutSyntaxTree(tree), [tree]);
 
+  // Controlled ReactFlow needs position/select changes fed back via `nodes`,
+  // otherwise drag and selection events are discarded.
+  const [nodeOverrides, setNodeOverrides] = useState<Record<string, { position?: XYPosition; selected?: boolean }>>({});
+
+  useEffect(() => {
+    setNodeOverrides({});
+  }, [layout]);
+
   const flowNodes: SyntaxTreeNodeType[] = useMemo(() => {
     if (!hasContent) return [];
 
     return adapted.nodes.map((node) => {
-      const pos = layout.get(node.data.nodeId) ?? { x: 0, y: 0 };
+      const override = nodeOverrides[node.id];
+      const pos = override?.position ?? layout.get(node.data.nodeId) ?? { x: 0, y: 0 };
       const isHighlighted =
         node.data.position !== undefined &&
         Boolean(highlightedPositions?.includes(node.data.position));
@@ -53,6 +70,7 @@ function SyntaxTreeGraphInner({
         id: node.id,
         type: 'treeNode',
         position: pos,
+        selected: override?.selected,
         data: {
           ...node.data,
           isHighlighted,
@@ -60,7 +78,7 @@ function SyntaxTreeGraphInner({
         },
       };
     });
-  }, [hasContent, adapted.nodes, layout, highlightedPositions, selectedNodeId]);
+  }, [hasContent, adapted.nodes, layout, nodeOverrides, highlightedPositions, selectedNodeId]);
 
   const flowEdges: Edge[] = useMemo(() => {
     if (!hasContent) return [];
@@ -84,6 +102,25 @@ function SyntaxTreeGraphInner({
     [onNodeClick]
   );
 
+  const handleNodesChange: OnNodesChange<SyntaxTreeNodeType> = useCallback((changes) => {
+    setNodeOverrides((prev) => {
+      let next: Record<string, { position?: XYPosition; selected?: boolean }> | null = null;
+      for (const change of changes) {
+        if (change.type === 'position' && change.position) {
+          next ??= { ...prev };
+          next[change.id] = { ...next[change.id], position: change.position };
+        } else if (change.type === 'select') {
+          next ??= { ...prev };
+          next[change.id] = { ...next[change.id], selected: change.selected };
+        } else if (change.type === 'remove') {
+          next ??= { ...prev };
+          delete next[change.id];
+        }
+      }
+      return next ?? prev;
+    });
+  }, []);
+
   return (
     <figure
       className={['automata-graph', 'syntax-tree-graph', className].filter(Boolean).join(' ')}
@@ -96,6 +133,7 @@ function SyntaxTreeGraphInner({
             nodes={flowNodes}
             edges={flowEdges}
             nodeTypes={treeNodeTypes}
+            onNodesChange={handleNodesChange}
             onNodeClick={handleNodeClick}
             fitView
             fitViewOptions={{ padding: 0.25 }}

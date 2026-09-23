@@ -153,18 +153,27 @@ pretty on dense graphs, far more useful.
 
 ## D-008 - Parallel transitions merge into one edge
 
-**Status** Accepted
+**Status** Accepted - revisited (DFA no longer merges)
 
 **Decision** Transitions sharing a `(from, to)` pair render as a single edge
-with a combined label.
+with a combined label. **Revisited:** this still holds for the NFA adapter. The
+DFA adapter now emits one edge per symbol (`e{from}-{to}-{symbol}`), and
+`AutomataGraph` groups edges by *undirected* pair and gives each a
+`parallelOffset` in pixels. `TransitionEdge` bows the Bézier control points
+vertically by that offset (and raises parallel self-loop radii) so the curves
+never overlap — including same-Y straight edges where `getBezierPath`
+`curvature` is ignored.
 
 **Why** Without merging, an alphabet of four symbols produces four overlapping
 curves between the same two circles, and the labels collide. With merging the
-graph stays readable as the alphabet grows.
+graph stays readable as the alphabet grows. Geometric offsets solve the same
+readability problem for the DFA without hiding which symbol drives which edge —
+useful now that simulation highlighting targets a single symbol per edge.
 
-**Consequence** The graph shows fewer edges than the transition table has rows.
-That is correct and worth a line in the legend; the table remains the exhaustive
-view.
+**Consequence** For the NFA, the graph shows fewer edges than the transition
+table has rows; that is correct and worth a line in the legend — the table
+remains the exhaustive view. For the DFA, edge count matches the transition
+table row count, and each row highlights exactly one edge.
 
 ---
 

@@ -272,6 +272,41 @@
 }
 
 /* ==========================================================================
+   Selected Node Details Card (DFA states & syntax tree nodes)
+   ========================================================================== */
+
+.graph-node-details {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: max-content;
+  padding: 6px 10px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  line-height: 1.45;
+  color: var(--text-primary);
+  text-align: left;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.graph-node-details__status {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.graph-node-details__line {
+  color: var(--text-secondary);
+}
+
+/* ==========================================================================
    Transition Edges & Labels
    ========================================================================== */
 

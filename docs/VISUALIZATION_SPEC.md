@@ -34,7 +34,7 @@ NfaGraph / DfaGraph          public, thin
   AutomataGraph              the single React Flow instance
         │
         ├── StateNode        one per state
-        ├── TransitionEdge   one per merged (from,to) pair
+        ├── TransitionEdge   one per transition (NFA merges per pair; DFA keeps one per symbol)
         ├── GraphControls    zoom / pan / fit / reset
         └── GraphLegend      explains the conventions
 ```
@@ -68,15 +68,25 @@ Tokens to use: `--state-fill`, `--state-border`, `--state-start`,
 | Edge kind   | Rendering                                    |
 | ----------- | -------------------------------------------- |
 | symbol      | solid line, arrowhead, label `a`             |
-| merged      | solid line, one label `a, b`                 |
+| merged      | solid line, one label `a, b` (NFA only)      |
+| parallel    | separate offset curves, one label each       |
 | epsilon     | **dashed** line, label the glyph for epsilon |
 | self-loop   | a loop above the node, label outside it      |
 | highlighted | accent colour and a heavier stroke           |
 
-**Merging.** Two transitions between the same ordered pair of states become ONE
-edge with a combined label. `q0 -a-> q1` and `q0 -b-> q1` render as a single
-edge labelled `a, b`. Without merging, a four-symbol alphabet produces four
-overlapping curves between the same two circles and the graph becomes unreadable.
+**Merging (NFA) vs parallel edges (DFA).** The NFA adapter merges two
+transitions between the same ordered pair of states into ONE edge with a
+combined label: `q0 -a-> q1` and `q0 -b-> q1` render as a single edge labelled
+`a, b`. The DFA adapter does NOT merge — each transition keeps its own edge
+(`e{from}-{to}-{symbol}`) so every symbol has its own curve and label.
+`AutomataGraph` detects edges sharing an *undirected* pair (so `q0→q1` and
+`q1→q0` separate too) and assigns each a `parallelOffset` in pixels (and a
+raised radius for parallel self-loops). `TransitionEdge` applies that offset as
+a vertical bow of the Bézier control points — `getBezierPath({ curvature })`
+is ignored for same-Y straight edges, so curvature alone cannot separate
+parallel transitions. Without the offset, a four-symbol alphabet would produce
+four coincident curves and unreadable labels — merging was the old fix;
+geometric offset is the new one for DFA.
 
 **Epsilon.** `transition.symbol === null` renders with the label
 `EPSILON_DISPLAY` and a dashed stroke. The dash carries the meaning; the glyph
@@ -161,7 +171,8 @@ against `compileRegex` output.
 Worth testing:
 
 - a public component renders the empty state for `null`
-- the adapters merge parallel transitions into one edge
+- the NFA adapter merges parallel transitions into one edge; the DFA adapter
+  keeps them separate (one edge per symbol, distinct ids/labels)
 - the adapters mark `symbol === null` as `isEpsilon`
 - the layout is deterministic: two calls give equal results
 - accepting and start flags reach the node data

@@ -172,14 +172,42 @@ describe('adaptDfa', () => {
     expect(() => adaptDfa(brokenDfa)).toThrow(/cannot contain epsilon transitions/i);
   });
 
-  it('adapts minimized DFA with merged parallel transitions', () => {
+  it('keeps parallel transitions between the same state pair as separate edges', () => {
     const adapted = adaptDfa(MOCK_MINIMIZED_DFA);
     expect(adapted.nodes).toHaveLength(2);
 
-    // In MOCK_MINIMIZED_DFA, transitions are 0 -> 1 with 'a' and 0 -> 1 with 'b'
+    // MOCK_MINIMIZED_DFA has 0 -> 1 with 'a' and 0 -> 1 with 'b'
+    expect(adapted.edges).toHaveLength(2);
+    expect(adapted.edges[0].id).toBe('e0-1-a');
+    expect(adapted.edges[0].source).toBe('0');
+    expect(adapted.edges[0].target).toBe('1');
+    expect(adapted.edges[0].data.label).toBe('a');
+    expect(adapted.edges[0].data.symbols).toEqual(['a']);
+    expect(adapted.edges[0].data.isEpsilon).toBe(false);
+    expect(adapted.edges[1].id).toBe('e0-1-b');
+    expect(adapted.edges[1].data.label).toBe('b');
+    expect(adapted.edges[1].data.symbols).toEqual(['b']);
+    expect(adapted.edges[1].data.isEpsilon).toBe(false);
+  });
+
+  it('deduplicates an identical repeated transition', () => {
+    const dfaWithDuplicate: DFA = {
+      states: [
+        { id: 0, positions: [1], nfaStates: [1], isAccepting: false },
+        { id: 1, positions: [2], nfaStates: [2], isAccepting: true },
+      ],
+      alphabet: ['a'],
+      startState: 0,
+      acceptStates: [1],
+      transitions: [
+        { from: 0, to: 1, symbol: 'a' },
+        { from: 0, to: 1, symbol: 'a' },
+      ],
+    };
+
+    const adapted = adaptDfa(dfaWithDuplicate);
     expect(adapted.edges).toHaveLength(1);
-    expect(adapted.edges[0].data.label).toBe('a, b');
-    expect(adapted.edges[0].data.symbols).toEqual(['a', 'b']);
+    expect(adapted.edges[0].id).toBe('e0-1-a');
   });
 
   it('adapts DFA with self-loop', () => {
@@ -188,6 +216,7 @@ describe('adaptDfa', () => {
     expect(adapted.nodes[0].data.isStart).toBe(true);
     expect(adapted.nodes[0].data.isAccepting).toBe(true);
     expect(adapted.edges).toHaveLength(1);
+    expect(adapted.edges[0].id).toBe('e0-0-a');
     expect(adapted.edges[0].source).toBe('0');
     expect(adapted.edges[0].target).toBe('0');
   });

@@ -11,6 +11,7 @@
  *   start state     circle with incoming arrow from nowhere
  *   highlighted     accent/warning stroke while simulation step is on this state
  *   positions       displays syntax-tree position set {1, 2, 3}
+ *   selected        details card below the node (status + positions)
  */
 
 import { Handle, Position, type NodeProps, type Node } from '@xyflow/react';
@@ -44,7 +45,13 @@ export function StateNode({ data, selected }: NodeProps<StateNodeType>) {
     .filter(Boolean)
     .join(', ');
 
-  const tooltip = posList.length > 0 ? `Positions: {${posList.join(', ')}}` : undefined;
+  const tooltip = [
+    data.isStart ? 'Start state' : '',
+    data.isAccepting ? 'Accepting state' : 'Non-accepting state',
+    posList.length > 0 ? `Positions: {${posList.join(', ')}}` : '',
+  ]
+    .filter(Boolean)
+    .join('\n');
 
   return (
     <div
@@ -120,6 +127,19 @@ export function StateNode({ data, selected }: NodeProps<StateNodeType>) {
 
       {/* Syntax-tree leaf positions */}
       {posString && <span className="state-node__positions">{posString}</span>}
+
+      {/* Details revealed on selection */}
+      {isSelected && (
+        <div className="graph-node-details" role="status">
+          <div className="graph-node-details__status">
+            {data.isAccepting ? 'Accepting' : 'Non-accepting'}
+            {data.isStart ? ' · start' : ''}
+          </div>
+          {posList.length > 0 && (
+            <div className="graph-node-details__line">{`Positions: {${posList.join(', ')}}`}</div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

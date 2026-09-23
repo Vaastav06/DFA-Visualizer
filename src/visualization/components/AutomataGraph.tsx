@@ -6,8 +6,16 @@
  * layout from `layout/graphLayout.ts`, legend, and controls.
  */
 
-import { type ReactNode, useCallback, useMemo } from 'react';
-import { Background, MarkerType, ReactFlow, ReactFlowProvider, type Node } from '@xyflow/react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import {
+  Background,
+  MarkerType,
+  ReactFlow,
+  ReactFlowProvider,
+  type Node,
+  type OnNodesChange,
+  type XYPosition,
+} from '@xyflow/react';
 
 import type { AutomatonKind, GraphHighlight, StateNodeData } from '../types';
 import type { AdaptedGraph } from '../adapters/nfaAdapter';
@@ -52,6 +60,23 @@ interface AutomataGraphProps {
   children?: ReactNode;
 }
 
+/**
+ * Pixel separation between adjacent parallel/bidirectional edges.
+ * Applied as a vertical control-point bow in `TransitionEdge`.
+ */
+const PARALLEL_SPREAD_PX = 44;
+
+/** Key grouping edges that share the same undirected state pair. */
+function unorderedPairKey(from: number, to: number): string {
+  return from <= to ? `${from}-${to}` : `${to}-${from}`;
+}
+
+/** Per-node overrides kept across controlled ReactFlow updates. */
+interface NodeOverride {
+  position?: XYPosition;
+  selected?: boolean;
+}
+
 function AutomataGraphInner({
   kind,
   graph,
@@ -66,6 +91,16 @@ function AutomataGraphInner({
   children,
 }: AutomataGraphProps) {
   const hasContent = graph !== null && graph.nodes.length > 0;
+
+  // Drag/select overrides: controlled ReactFlow drops these changes unless we
+  // persist them here and feed them back via the `nodes` prop.
+  const [nodeOverrides, setNodeOverrides] = useState<Record<string, NodeOverride>>({});
+  const graphKey = layoutKey(graph);
+
+  // New layout/graph → drop manual positions so the deterministic layout applies.
+  useEffect(() => {
+    setNodeOverrides({});
+  }, [graphKey]);
 
   // 1. Calculate deterministic layout
   const layout = useMemo(() => {
@@ -90,7 +125,8 @@ function AutomataGraphInner({
       return [];
     }
     return graph.nodes.map((node) => {
-      const pos = layout.get(node.data.stateId) ?? { x: 0, y: 0 };
+      const override = nodeOverrides[node.id];
+      const pos = override?.position ?? layout.get(node.data.stateId) ?? { x: 0, y: 0 };
       const isHighlighted =
         Boolean(highlight?.states?.includes(node.data.stateId)) ||
         Boolean(highlightedStateIds?.includes(node.data.stateId));
@@ -107,6 +143,7 @@ function AutomataGraphInner({
         id: node.id,
         type: 'state',
         position: pos,
+        selected: override?.selected,
         data: {
           ...node.data,
           isHighlighted,
@@ -119,20 +156,40 @@ function AutomataGraphInner({
     graph,
     hasContent,
     layout,
+    nodeOverrides,
     highlight?.states,
     highlightedStateIds,
     activeStateId,
     selectedStateId,
   ]);
 
-  // 3. Prepare React Flow edges with highlighting and markers
+  // 3. Prepare React Flow edges with highlighting, markers, and parallel offsets
   const flowEdges: TransitionEdgeType[] = useMemo(() => {
     if (!hasContent) {
       return [];
     }
+
+    // Group by *undirected* pair so a→b and b→a also separate, not just
+    // same-direction parallels (getBezierPath curvature is zero for both cases).
+    const parallelCounts = new Map<string, number>();
+    for (const edge of graph.edges) {
+      const key = unorderedPairKey(Number(edge.source), Number(edge.target));
+      parallelCounts.set(key, (parallelCounts.get(key) ?? 0) + 1);
+    }
+    const parallelSeen = new Map<string, number>();
+
     return graph.edges.map((edge) => {
       const from = Number(edge.source);
       const to = Number(edge.target);
+
+      const pairKey = unorderedPairKey(from, to);
+      const parallelCount = parallelCounts.get(pairKey) ?? 1;
+      const parallelIndex = parallelSeen.get(pairKey) ?? 0;
+      parallelSeen.set(pairKey, parallelIndex + 1);
+      const parallelOffset =
+        parallelCount <= 1
+          ? 0
+          : (parallelIndex - (parallelCount - 1) / 2) * PARALLEL_SPREAD_PX;
 
       const isHighlighted =
         Boolean(
@@ -173,6 +230,9 @@ function AutomataGraphInner({
         data: {
           ...edge.data,
           isHighlighted,
+          parallelIndex,
+          parallelCount,
+          parallelOffset,
         },
         markerEnd: {
           type: MarkerType.ArrowClosed,
@@ -195,6 +255,26 @@ function AutomataGraphInner({
     [onStateClick]
   );
 
+  // Persist drag/selection changes so controlled `nodes` stay in sync.
+  const handleNodesChange: OnNodesChange<StateNodeType> = useCallback((changes) => {
+    setNodeOverrides((prev) => {
+      let next: Record<string, NodeOverride> | null = null;
+      for (const change of changes) {
+        if (change.type === 'position' && change.position) {
+          next ??= { ...prev };
+          next[change.id] = { ...next[change.id], position: change.position };
+        } else if (change.type === 'select') {
+          next ??= { ...prev };
+          next[change.id] = { ...next[change.id], selected: change.selected };
+        } else if (change.type === 'remove') {
+          next ??= { ...prev };
+          delete next[change.id];
+        }
+      }
+      return next ?? prev;
+    });
+  }, []);
+
   return (
     <figure
       className={['automata-graph', className].filter(Boolean).join(' ')}
@@ -208,6 +288,7 @@ function AutomataGraphInner({
             edges={flowEdges}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
+            onNodesChange={handleNodesChange}
             onNodeClick={handleNodeClick}
             fitView
             fitViewOptions={{ padding: 0.25 }}
@@ -242,4 +323,10 @@ export function AutomataGraph(props: AutomataGraphProps) {
       <AutomataGraphInner {...props} />
     </ReactFlowProvider>
   );
+}
+
+/** Stable key for the current graph identity (used to reset drag overrides). */
+function layoutKey(graph: AdaptedGraph | null): string {
+  if (!graph) return '';
+  return graph.nodes.map((n) => n.id).join(',') + '|' + graph.edges.map((e) => e.id).join(',');
 }

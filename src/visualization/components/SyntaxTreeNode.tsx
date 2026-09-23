@@ -3,7 +3,8 @@
  *
  * OWNER: Person 2.
  * Custom React Flow node displaying operators, symbols, leaf positions,
- * and analysis tooltips (nullable, firstpos, lastpos).
+ * analysis tooltips (nullable, firstpos, lastpos), and a details card when
+ * the node is selected.
  */
 
 import { Handle, Position, type NodeProps, type Node } from '@xyflow/react';
@@ -74,6 +75,19 @@ export function SyntaxTreeNode({ data, selected }: NodeProps<SyntaxTreeNodeType>
         >
           {data.position}
         </span>
+      )}
+
+      {/* Details revealed on selection */}
+      {isSelected && (
+        <div className="graph-node-details" role="status">
+          <div className="graph-node-details__status">
+            {data.type}
+            {data.position !== undefined ? ` · pos ${data.position}` : ''}
+          </div>
+          <div className="graph-node-details__line">Nullable: {String(data.nullable)}</div>
+          <div className="graph-node-details__line">{`Firstpos: {${data.firstpos.join(', ')}}`}</div>
+          <div className="graph-node-details__line">{`Lastpos: {${data.lastpos.join(', ')}}`}</div>
+        </div>
       )}
     </div>
   );

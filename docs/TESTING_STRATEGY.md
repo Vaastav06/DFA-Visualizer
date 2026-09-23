@@ -90,7 +90,8 @@ the compiler is genuinely covered.
 Use the fixtures. Never call `compileRegex` here: a compiler bug would then fail
 the visualization suite and send Person 2 debugging someone else code.
 
-- adapters merge parallel transitions into one edge
+- NFA adapter merges parallel transitions into one edge; DFA adapter keeps
+  them separate (one edge per symbol, distinct ids/labels)
 - `symbol === null` becomes `isEpsilon`
 - start and accepting flags reach the node data
 - DFA nodes carry `nfaStates`

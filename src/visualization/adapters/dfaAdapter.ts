@@ -9,6 +9,8 @@
  * Rules:
  *  - a DFA has NO epsilon transitions; if `symbol === null` appears, surface
  *    an error
+ *  - each transition becomes its OWN edge (`e{from}-{to}-{symbol}`); parallel
+ *    transitions are NOT merged — the graph offsets them visually instead
  *  - each node carries `positions` (syntax-tree leaf positions, e.g. [1, 2, 3])
  *  - `nfaStates` is preserved as a deprecated backwards-compatibility alias
  */
@@ -39,8 +41,10 @@ export function adaptDfa(dfa: DFA): AdaptedGraph {
     };
   });
 
-  // Merge parallel transitions between the same (from, to) state pair
-  const edgeMap = new Map<string, { from: number; to: number; symbols: string[] }>();
+  // One edge per transition. Parallel (from, to) pairs stay separate so each
+  // symbol gets its own curve and label; AutomataGraph offsets them visually.
+  const edges: GraphEdge[] = [];
+  const seen = new Set<string>();
 
   for (const transition of dfa.transitions ?? []) {
     if (transition.symbol === null) {
@@ -49,36 +53,23 @@ export function adaptDfa(dfa: DFA): AdaptedGraph {
       );
     }
 
-    const key = `${transition.from}->${transition.to}`;
-    const existing = edgeMap.get(key);
-    if (existing) {
-      if (!existing.symbols.includes(transition.symbol)) {
-        existing.symbols.push(transition.symbol);
-      }
-    } else {
-      edgeMap.set(key, {
-        from: transition.from,
-        to: transition.to,
-        symbols: [transition.symbol],
-      });
+    const key = `${transition.from}->${transition.to}->${transition.symbol}`;
+    if (seen.has(key)) {
+      continue;
     }
-  }
+    seen.add(key);
 
-  const edges: GraphEdge[] = Array.from(edgeMap.values()).map(({ from, to, symbols }) => {
-    const sortedSymbols = [...symbols].sort((a, b) => a.localeCompare(b));
-    const label = sortedSymbols.join(', ');
-
-    return {
-      id: `e${from}-${to}`,
-      source: String(from),
-      target: String(to),
+    edges.push({
+      id: `e${transition.from}-${transition.to}-${transition.symbol}`,
+      source: String(transition.from),
+      target: String(transition.to),
       data: {
-        symbols: sortedSymbols,
-        label,
+        symbols: [transition.symbol],
+        label: transition.symbol,
         isEpsilon: false,
       },
-    };
-  });
+    });
+  }
 
   return { nodes, edges };
 }

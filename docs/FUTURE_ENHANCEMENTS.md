@@ -39,8 +39,9 @@ merged states linked. Makes minimization click faster than two separate graphs.
 **Export as PNG or SVG.** Students would use this for reports. React Flow can
 render to an image with some work.
 
-**Manual node positioning.** Let the user drag nodes and keep the positions.
-Useful for a screenshot; must not break the deterministic default layout.
+**Manual node positioning.** Dragging is supported: position overrides live in
+each graph component and reset when a new layout/graph is computed, so the
+deterministic default layout still applies after recompilation.
 
 **Automatic edge-crossing reduction.** A proper layered layout with crossing
 minimisation. Only worth it once large expressions are common.

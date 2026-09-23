@@ -139,8 +139,8 @@ export function HomePage() {
       <header className="page__header">
         <h1 className="page__title">Regular Expression to DFA Visualizer</h1>
         <p className="page__subtitle">
-          Enter a regular expression and follow it through tokenization, postfix conversion,
-          Thompson&apos;s construction, subset construction and minimization.
+          Enter a regular expression and follow it through tokenization, syntax-tree analysis,
+          followpos, direct DFA construction and minimization.
         </p>
       </header>
 

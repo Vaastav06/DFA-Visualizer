@@ -158,11 +158,8 @@ pretty on dense graphs, far more useful.
 **Decision** Transitions sharing a `(from, to)` pair render as a single edge
 with a combined label. **Revisited:** this still holds for the NFA adapter. The
 DFA adapter now emits one edge per symbol (`e{from}-{to}-{symbol}`), and
-`AutomataGraph` groups edges by *undirected* pair and gives each a
-`parallelOffset` in pixels. `TransitionEdge` bows the Bézier control points
-vertically by that offset (and raises parallel self-loop radii) so the curves
-never overlap — including same-Y straight edges where `getBezierPath`
-`curvature` is ignored.
+edge geometry is computed by `layout/edgeRouting.ts`, which bows edges sharing
+an _undirected_ pair to distinct sides so the curves never overlap (see D-017).
 
 **Why** Without merging, an alphabet of four symbols produces four overlapping
 curves between the same two circles, and the labels collide. With merging the
@@ -344,3 +341,28 @@ rather than Thompson's construction + subset construction.
   backward compatibility with existing visualization adapters and fixtures.
 - The compilation result exposes `syntaxTree`, `positions`, `analysis`, and `followpos` for the UI
   to render rich intermediate syntax analysis steps.
+
+---
+
+## D-017 - Central, obstacle-aware edge routing for DFA graphs
+
+**Status** Accepted
+
+**Decision** Edge paths are computed once for the whole graph by a pure router
+(`layout/edgeRouting.ts`), not per edge from React Flow handle positions. The
+router fans out same-pair edges, moves edges that would cross an unrelated
+state or share a track onto arc lanes, places self-loops in the freest
+direction, and slides labels to collision-free spots. Fitting uses the routed
+content bounds.
+
+**Why** Per-edge geometry cannot see other edges. The previous version classed
+an edge as "back" by comparing state ids and sent every back edge through the
+same bottom handles, so return edges shared a track and their labels stacked.
+Straight paths also ran through intermediate states, and `fitView` clipped
+self-loops because it only measures nodes.
+
+**Consequence** `TransitionEdgeData.parallelOffset` is replaced by `route`.
+Routing re-runs only when positions change. It is O(E · lanes · samples ·
+(N + E)), negligible at teaching-size DFAs. Some crossings remain where the
+automaton's structure forces them; the router guarantees distinct tracks and
+readable labels, not crossing-free drawings.

@@ -63,8 +63,18 @@ export function DfaPositionMapping({
                   .filter(Boolean)
                   .join(' ')}
                 onClick={() => onSelectState?.(state.id)}
+                onKeyDown={
+                  onSelectState
+                    ? (event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          onSelectState(state.id);
+                        }
+                      }
+                    : undefined
+                }
                 tabIndex={onSelectState ? 0 : undefined}
-                role={onSelectState ? 'button' : undefined}
+                aria-selected={onSelectState ? isSelected : undefined}
               >
                 <td>
                   <span className="vis-state-badge">

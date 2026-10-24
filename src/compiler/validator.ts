@@ -23,6 +23,12 @@ import { RegexSyntaxError } from './errors';
 /** Characters the grammar reserves; none of them can be a literal. */
 const RESERVED = new Set(['|', '*', '(', ')', '.']);
 
+/**
+ * Maximum input length accepted by the validator to prevent call-stack
+ * exhaustion and excessive compilation latency on pathological inputs.
+ */
+export const MAX_REGEX_LENGTH = 500;
+
 /** One non-whitespace character together with its index in the original input. */
 interface PositionedChar {
   char: string;
@@ -45,6 +51,17 @@ function isLiteralChar(char: string): boolean {
 
 /** Throws a `RegexSyntaxError` if `regex` is not a valid expression. */
 export function validate(regex: string): void {
+  if (regex.length > MAX_REGEX_LENGTH) {
+    throw new RegexSyntaxError(
+      'INVALID_OPERATOR_POSITION',
+      `The regular expression is too long (${regex.length} characters). Keep expressions to ${MAX_REGEX_LENGTH} characters or fewer.`,
+      {
+        position: MAX_REGEX_LENGTH,
+        details: `Input length ${regex.length} exceeds MAX_REGEX_LENGTH (${MAX_REGEX_LENGTH}).`,
+      }
+    );
+  }
+
   const chars = collectSignificantChars(regex);
 
   if (chars.length === 0) {

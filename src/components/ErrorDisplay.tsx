@@ -10,15 +10,20 @@
 interface ErrorDisplayProps {
   message: string | null;
   onDismiss?: () => void;
+  id?: string;
 }
 
-export function ErrorDisplay({ message, onDismiss }: ErrorDisplayProps) {
+export function ErrorDisplay({
+  message,
+  onDismiss,
+  id = 'regex-error-message',
+}: ErrorDisplayProps) {
   if (message === null || message === '') {
     return null;
   }
 
   return (
-    <div className="error-display" role="alert">
+    <div id={id} className="error-display" role="alert">
       <p className="error-display__message">{message}</p>
       {onDismiss && (
         <button type="button" className="error-display__dismiss" onClick={onDismiss}>

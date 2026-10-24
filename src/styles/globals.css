@@ -275,6 +275,11 @@ caption {
   margin-top: var(--space-2);
 }
 
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
 /* ---------- step navigation ---------- */
 
 .step-nav {

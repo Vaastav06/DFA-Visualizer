@@ -2,8 +2,7 @@
  * Application-wide state.
  *
  * OWNER: Person 3.
- * TODO(Person 3): extend with whatever the UI actually needs (current step,
- * simulation input, highlight state). Keep it small — this is not a store.
+ * Provides compiler state, current regex expression, and active pipeline step.
  */
 
 import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';

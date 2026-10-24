@@ -2,8 +2,7 @@
  * Prose explaining the algorithm behind the current step.
  *
  * OWNER: Person 3.
- * TODO(Person 3): write the per-stage copy, sourced from
- * docs/COMPILER_PIPELINE.md so the app and the docs agree.
+ * Sourced from docs/COMPILER_PIPELINE.md so the app and the docs agree.
  */
 
 import type { ReactNode } from 'react';

@@ -2,8 +2,7 @@
  * The regular-expression input field and Convert button.
  *
  * OWNER: Person 3.
- * TODO(Person 3): validation feedback as the user types, keyboard submit,
- * aria-describedby wiring to the error message.
+ * Supports keyboard submit, disabled state, and aria-describedby error wiring.
  */
 
 import { useState, type FormEvent } from 'react';
@@ -14,9 +13,18 @@ interface RegexInputProps {
   onChange?: (value: string) => void;
   onSubmit?: (value: string) => void;
   disabled?: boolean;
+  hasError?: boolean;
+  errorId?: string;
 }
 
-export function RegexInput({ value, onChange, onSubmit, disabled = false }: RegexInputProps) {
+export function RegexInput({
+  value,
+  onChange,
+  onSubmit,
+  disabled = false,
+  hasError = false,
+  errorId = 'regex-error-message',
+}: RegexInputProps) {
   const [internal, setInternal] = useState('');
   const current = value ?? internal;
 
@@ -45,6 +53,8 @@ export function RegexInput({ value, onChange, onSubmit, disabled = false }: Rege
           placeholder="(a|b)*abb"
           value={current}
           disabled={disabled}
+          aria-invalid={hasError ? true : undefined}
+          aria-describedby={hasError ? errorId : undefined}
           onChange={(event) => handleChange(event.target.value)}
         />
         <button type="submit" className="button button--primary" disabled={disabled}>

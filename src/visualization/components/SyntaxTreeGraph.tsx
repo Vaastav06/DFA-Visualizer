@@ -46,7 +46,9 @@ function SyntaxTreeGraphInner({
 
   // Controlled ReactFlow needs position/select changes fed back via `nodes`,
   // otherwise drag and selection events are discarded.
-  const [nodeOverrides, setNodeOverrides] = useState<Record<string, { position?: XYPosition; selected?: boolean }>>({});
+  const [nodeOverrides, setNodeOverrides] = useState<
+    Record<string, { position?: XYPosition; selected?: boolean }>
+  >({});
 
   useEffect(() => {
     setNodeOverrides({});

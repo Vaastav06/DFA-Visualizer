@@ -62,8 +62,18 @@ export function FollowposTable({
                   .filter(Boolean)
                   .join(' ')}
                 onClick={() => onSelectPosition?.(entry.position)}
+                onKeyDown={
+                  onSelectPosition
+                    ? (event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          onSelectPosition(entry.position);
+                        }
+                      }
+                    : undefined
+                }
                 tabIndex={onSelectPosition ? 0 : undefined}
-                role={onSelectPosition ? 'button' : undefined}
+                aria-selected={onSelectPosition ? isSelected : undefined}
               >
                 <td>
                   <PositionBadge position={entry.position} isEndMarker={isEndMarker} />

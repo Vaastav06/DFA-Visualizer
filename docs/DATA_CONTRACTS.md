@@ -185,19 +185,21 @@ Ordered mapping of leaf positions assigned during left-to-right syntax tree trav
 ### `NodeAnalysis` and `SyntaxAnalysis`
 
 ```ts
-interface NodeAnalysis {
+interface SyntaxAnalysis {
   nullable: boolean;
   firstpos: number[];
   lastpos: number[];
 }
 
-interface SyntaxAnalysis {
-  [nodeId: number]: NodeAnalysis;
+interface NodeAnalysis {
+  nodeId: number;
+  nullable: boolean;
+  firstpos: number[];
+  lastpos: number[];
 }
 ```
 
-Computed metadata for each node in the syntax tree. `firstpos` and `lastpos` are
-always sorted, deduplicated arrays of 1-based position numbers.
+Computed metadata for the syntax tree root (`SyntaxAnalysis`) and per-node entries (`NodeAnalysis`). Note that each `SyntaxNode` also carries `nullable`, `firstpos`, and `lastpos` directly. `firstpos` and `lastpos` are always sorted, deduplicated arrays of 1-based position numbers.
 
 ### `FollowPosEntry`
 
@@ -272,6 +274,8 @@ interface SimulationResult {
   accepted: boolean;
   steps: SimulationStep[];
   path: number[]; // path[0] is always dfa.startState
+  consumed: number; // total characters consumed before accepting or halting early
+  error?: string; // description of rejection or error reason, if any
   rejectedAt?: number; // index where the run stopped early, if it did
 }
 ```

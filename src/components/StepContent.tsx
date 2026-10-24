@@ -2,8 +2,7 @@
  * The panel for the currently selected pipeline step.
  *
  * OWNER: Person 3.
- * TODO(Person 3): switch on the step id and render the postfix string, the
- * <NfaGraph />, the <DfaGraph />, the tables and the simulator.
+ * Renders the title, description, and children for the active compilation step.
  *
  * This is where the compiler, the visualization and the UI meet — see
  * docs/INTEGRATION_GUIDE.md.

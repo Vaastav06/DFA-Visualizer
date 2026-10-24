@@ -2,7 +2,6 @@
  * The single bridge between the UI and the compiler.
  *
  * OWNER: Person 3.
- * TODO(Person 3): flesh out as the UI grows.
  *
  * CONTRACT: no component calls `compileRegex` directly — they all go through
  * this hook, so error handling, loading state and the epsilon/state-id display

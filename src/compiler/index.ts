@@ -11,7 +11,7 @@
 export { compileRegex, PIPELINE_STEPS } from './compiler';
 
 /* ---- pipeline stage functions ---- */
-export { validate, validate as validateRegex } from './validator';
+export { validate, validate as validateRegex, MAX_REGEX_LENGTH } from './validator';
 export { tokenize, isLiteral, collectAlphabet } from './tokenizer';
 export {
   insertExplicitConcatenation,

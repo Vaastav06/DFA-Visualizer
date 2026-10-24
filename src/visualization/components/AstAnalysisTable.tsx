@@ -94,8 +94,18 @@ export function AstAnalysisTable({
                   .filter(Boolean)
                   .join(' ')}
                 onClick={() => onSelectNode?.(row.id)}
+                onKeyDown={
+                  onSelectNode
+                    ? (event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          onSelectNode(row.id);
+                        }
+                      }
+                    : undefined
+                }
                 tabIndex={onSelectNode ? 0 : undefined}
-                role={onSelectNode ? 'button' : undefined}
+                aria-selected={onSelectNode ? isSelected : undefined}
               >
                 <td className="vis-table__num-cell">#{row.id}</td>
                 <td>

@@ -174,6 +174,7 @@ function refinePartition(
 
 /** Returns a minimized copy of `dfa`. */
 export function minimizeDfa(dfa: DFA): DFA {
+  const sortedAlphabet = [...dfa.alphabet].sort();
   const index = indexTransitions(dfa.transitions);
   const stateById = new Map(dfa.states.map((state) => [state.id, state]));
   const accepting = new Set(dfa.acceptStates);
@@ -198,14 +199,14 @@ export function minimizeDfa(dfa: DFA): DFA {
       states: [
         { id: 0, positions: startPositions, nfaStates: [...startPositions], isAccepting: false },
       ],
-      alphabet: [...dfa.alphabet],
+      alphabet: sortedAlphabet,
       startState: 0,
       acceptStates: [],
       transitions: [],
     };
   }
 
-  const blocks = refinePartition(survivors, dfa.alphabet, index, accepting);
+  const blocks = refinePartition(survivors, sortedAlphabet, index, accepting);
 
   const blockOf = new Map<number, number>();
   blocks.forEach((block, blockIndex) => {
@@ -224,7 +225,7 @@ export function minimizeDfa(dfa: DFA): DFA {
     // Any member represents the block: all of them agree on where each symbol
     // leads, which is exactly what refinement established.
     const representative = blocks[order[i]][0];
-    for (const symbol of dfa.alphabet) {
+    for (const symbol of sortedAlphabet) {
       const target = index.get(representative)?.get(symbol);
       if (target === undefined) {
         continue;
@@ -263,7 +264,7 @@ export function minimizeDfa(dfa: DFA): DFA {
   const transitions: Transition[] = [];
   for (const blockIndex of order) {
     const representative = blocks[blockIndex][0];
-    for (const symbol of dfa.alphabet) {
+    for (const symbol of sortedAlphabet) {
       const target = index.get(representative)?.get(symbol);
       if (target === undefined) {
         continue;
@@ -282,7 +283,7 @@ export function minimizeDfa(dfa: DFA): DFA {
 
   return {
     states: states.sort((a, b) => a.id - b.id),
-    alphabet: [...dfa.alphabet],
+    alphabet: sortedAlphabet,
     startState: 0,
     acceptStates: states.filter((state) => state.isAccepting).map((state) => state.id),
     transitions,

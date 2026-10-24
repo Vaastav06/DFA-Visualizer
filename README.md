@@ -52,10 +52,11 @@ npm run dev
 
 Requires Node 20.19+ or 22.12+.
 
-> **Current state:** Person 1 Compiler Core is complete with the direct RE → DFA
-> construction algorithm (syntax trees, position numbering, followpos, direct DFA,
-> minimization, simulation) and full test suite passing. Visualization (Person 2)
-> and UI (Person 3) are in active development. See [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
+> **Current state:** All three modules — Compiler Core (Person 1), Visualization
+> (Person 2), and UI / Application (Person 3) — are complete and integrated on
+> `main` with the direct Regular Expression → DFA construction pipeline (syntax
+> trees, position numbering, nullable/firstpos/lastpos, followpos, direct DFA,
+> minimization, and interactive string simulation). See [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md).
 
 ## Commands
 

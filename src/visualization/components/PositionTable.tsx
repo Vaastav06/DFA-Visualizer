@@ -59,8 +59,18 @@ export function PositionTable({
                   .filter(Boolean)
                   .join(' ')}
                 onClick={() => onSelectPosition?.(item.position)}
+                onKeyDown={
+                  onSelectPosition
+                    ? (event) => {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                          event.preventDefault();
+                          onSelectPosition(item.position);
+                        }
+                      }
+                    : undefined
+                }
                 tabIndex={onSelectPosition ? 0 : undefined}
-                role={onSelectPosition ? 'button' : undefined}
+                aria-selected={onSelectPosition ? isSelected : undefined}
               >
                 <td>
                   <PositionBadge position={item.position} isEndMarker={isEndMarker} />

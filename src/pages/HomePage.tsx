@@ -7,12 +7,14 @@
  *        -> compile() from useAppContext()
  *        -> StepNavigation over result.steps
  *        -> StepContent for the active step
- *             postfix | <NfaGraph /> + <NfaTable />
+ *             postfix | <SyntaxTreeGraph /> + <PositionTable /> + <AstAnalysisTable />
+ *                     | <FollowposTable />
  *                     | <DfaGraph /> + <TransitionTable /> + <DfaMapping />
- *                     | <DfaGraph kind="minimized-dfa" />
+ *                     | <DfaGraph kind="minimized-dfa" /> + <TransitionTable /> + <DfaMapping />
  *                     | <StringSimulator />
  */
 
+import { useState, useEffect } from 'react';
 import { ExampleExpressions } from '../components/ExampleExpressions';
 import { RegexInput } from '../components/RegexInput';
 import { ErrorDisplay } from '../components/ErrorDisplay';
@@ -80,6 +82,30 @@ export function HomePage() {
     setActiveStep,
   } = useAppContext();
 
+  const [selectedNodeId, setSelectedNodeId] = useState<number | null>(null);
+  const [selectedPosition, setSelectedPosition] = useState<number | null>(null);
+  const [selectedDfaStateId, setSelectedDfaStateId] = useState<number | null>(null);
+  const [selectedMinDfaStateId, setSelectedMinDfaStateId] = useState<number | null>(null);
+
+  useEffect(() => {
+    setSelectedNodeId(null);
+    setSelectedPosition(null);
+    setSelectedDfaStateId(null);
+    setSelectedMinDfaStateId(null);
+  }, [result]);
+
+  const handleExpressionChange = (next: string) => {
+    setExpression(next);
+    if (error !== null) {
+      reset();
+    }
+  };
+
+  const handleExampleSelect = (exampleExpr: string) => {
+    setExpression(exampleExpr);
+    compile(exampleExpr);
+  };
+
   const handleStepSelect = (stepId: string) => {
     setActiveStep(stepId as CompilationStepId);
   };
@@ -105,24 +131,68 @@ export function HomePage() {
           )}
           {activeStep === 'syntaxTree' && (
             <>
-              <SyntaxTreeGraph tree={result.syntaxTree} />
-              <PositionTable positions={result.positions} />
-              <AstAnalysisTable tree={result.syntaxTree} />
+              <SyntaxTreeGraph
+                tree={result.syntaxTree}
+                selectedNodeId={selectedNodeId}
+                highlightedPositions={selectedPosition !== null ? [selectedPosition] : undefined}
+                onNodeClick={(nodeId, data) => {
+                  setSelectedNodeId(nodeId);
+                  if (data.position !== undefined) {
+                    setSelectedPosition(data.position);
+                  }
+                }}
+              />
+              <PositionTable
+                positions={result.positions}
+                highlightedPosition={selectedPosition}
+                onSelectPosition={(pos) => setSelectedPosition(pos)}
+              />
+              <AstAnalysisTable
+                tree={result.syntaxTree}
+                selectedNodeId={selectedNodeId}
+                onSelectNode={(nodeId) => setSelectedNodeId(nodeId)}
+              />
             </>
           )}
-          {activeStep === 'followpos' && <FollowposTable followpos={result.followpos} />}
+          {activeStep === 'followpos' && (
+            <FollowposTable
+              followpos={result.followpos}
+              selectedPosition={selectedPosition}
+              onSelectPosition={(pos) => setSelectedPosition(pos)}
+            />
+          )}
           {activeStep === 'dfa' && (
             <div className="stage-graph">
-              <DfaGraph dfa={result.dfa} />
-              <TransitionTable dfa={result.dfa} />
-              <DfaMapping dfa={result.dfa} />
+              <DfaGraph
+                dfa={result.dfa}
+                selectedStateId={selectedDfaStateId}
+                onStateClick={(id) => setSelectedDfaStateId(id)}
+              />
+              <div className="table-scroll">
+                <TransitionTable dfa={result.dfa} />
+              </div>
+              <div className="table-scroll">
+                <DfaMapping dfa={result.dfa} />
+              </div>
             </div>
           )}
           {activeStep === 'minimized' && (
             <div className="stage-graph">
-              <DfaGraph dfa={result.minimizedDfa} kind="minimized-dfa" />
-              <TransitionTable dfa={result.minimizedDfa} caption="Minimized DFA transition table" />
-              <DfaMapping dfa={result.minimizedDfa} caption="Minimized DFA state mapping" />
+              <DfaGraph
+                dfa={result.minimizedDfa}
+                kind="minimized-dfa"
+                selectedStateId={selectedMinDfaStateId}
+                onStateClick={(id) => setSelectedMinDfaStateId(id)}
+              />
+              <div className="table-scroll">
+                <TransitionTable
+                  dfa={result.minimizedDfa}
+                  caption="Minimized DFA transition table"
+                />
+              </div>
+              <div className="table-scroll">
+                <DfaMapping dfa={result.minimizedDfa} caption="Minimized DFA state mapping" />
+              </div>
             </div>
           )}
           {activeStep === 'simulation' && <StringSimulator dfa={result.minimizedDfa} />}
@@ -147,14 +217,16 @@ export function HomePage() {
       <section className="page__input">
         <RegexInput
           value={expression}
-          onChange={setExpression}
+          onChange={handleExpressionChange}
           onSubmit={compile}
           disabled={isCompiling}
+          hasError={error !== null}
+          errorId="regex-error-message"
         />
-        <ExampleExpressions onSelect={setExpression} />
+        <ExampleExpressions onSelect={handleExampleSelect} />
       </section>
 
-      <ErrorDisplay message={error} onDismiss={reset} />
+      <ErrorDisplay id="regex-error-message" message={error} onDismiss={reset} />
 
       <section className="page__results">
         {isCompiling && <LoadingState />}

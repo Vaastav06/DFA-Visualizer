@@ -69,9 +69,10 @@ Tokens to use: `--state-fill`, `--state-border`, `--state-start`,
 | ----------- | -------------------------------------------- |
 | symbol      | solid line, arrowhead, label `a`             |
 | merged      | solid line, one label `a, b` (NFA only)      |
-| parallel    | separate offset curves, one label each       |
+| parallel    | bowed to distinct sides, one label each      |
+| long / back | arc on an outer lane around other states     |
 | epsilon     | **dashed** line, label the glyph for epsilon |
-| self-loop   | a loop above the node, label outside it      |
+| self-loop   | loop in the freest direction, label outside  |
 | highlighted | accent colour and a heavier stroke           |
 
 **Merging (NFA) vs parallel edges (DFA).** The NFA adapter merges two
@@ -79,14 +80,11 @@ transitions between the same ordered pair of states into ONE edge with a
 combined label: `q0 -a-> q1` and `q0 -b-> q1` render as a single edge labelled
 `a, b`. The DFA adapter does NOT merge — each transition keeps its own edge
 (`e{from}-{to}-{symbol}`) so every symbol has its own curve and label.
-`AutomataGraph` detects edges sharing an *undirected* pair (so `q0→q1` and
-`q1→q0` separate too) and assigns each a `parallelOffset` in pixels (and a
-raised radius for parallel self-loops). `TransitionEdge` applies that offset as
-a vertical bow of the Bézier control points — `getBezierPath({ curvature })`
-is ignored for same-Y straight edges, so curvature alone cannot separate
-parallel transitions. Without the offset, a four-symbol alphabet would produce
-four coincident curves and unreadable labels — merging was the old fix;
-geometric offset is the new one for DFA.
+Edge geometry comes from `layout/edgeRouting.ts` (see "Edge routing" below),
+which separates edges sharing an _undirected_ pair (so `q0→q1` and `q1→q0`
+separate too). Without it, a four-symbol alphabet would produce four coincident
+curves and unreadable labels — merging was the old fix; routing is the new one
+for DFA.
 
 **Epsilon.** `transition.symbol === null` renders with the label
 `EPSILON_DISPLAY` and a dashed stroke. The dash carries the meaning; the glyph
@@ -114,7 +112,42 @@ Requirements:
 - Self-loops and back-edges must not move a node into another layer.
 - Unreachable states (possible in a hand-built fixture) still get a position.
 
-`DEFAULT_LAYOUT_OPTIONS` in `layout/layoutTypes.ts` holds the spacing.
+`DEFAULT_LAYOUT_OPTIONS` in `layout/layoutTypes.ts` holds the spacing. The
+110px in-layer spacing leaves room for a self-loop or a label between stacked
+states.
+
+## Edge routing
+
+`layout/edgeRouting.ts` (`routeEdges`) computes every edge's path and label
+position at once, from the current state centres, so edges can avoid each
+other. `AutomataGraph` calls it through `adapters/flowEdges.ts` and passes the
+result to `TransitionEdge` as `data.route`; the edge component only draws it.
+React Flow handles do not determine geometry.
+
+- **Pairs.** Edges between the same two states (either direction) fan out
+  symmetrically around the chord, 44px apart: a lone forward edge is straight,
+  a lone backward edge bows downward, `a`/`b` siblings and `q1↔q2` pairs bow
+  to opposite sides.
+- **Lanes.** If a pair's paths would pass within 12px of an unrelated state, or
+  run alongside an already-placed edge, each edge is re-routed as an arc. Arcs
+  try increasing heights (24px lanes); backward edges prefer the lower side,
+  forward edges the upper side. Shorter spans are placed first so longer arcs
+  nest outside them. A crossing is allowed; sharing a track is not.
+- **Self-loops** go in the widest free direction around the state (away from
+  incident edges and the start arrow, top preferred), clear of other states,
+  labels and edges. Several loop symbols on one state get separate directions.
+- **Labels** slide along their path (t = 0.5, then 0.42/0.58 …), and finally
+  beside its midpoint, to the first spot clear of states, arrowheads, other
+  labels and other edges' strokes.
+- **Arrowheads.** Paths start on the source border and end 2px outside the
+  target border, so arrowheads are never hidden under a state.
+- **Fit.** `routeEdges` also returns content bounds (states, loops, arcs,
+  labels). Fit, Reset and the initial view fit to those bounds, not to node
+  boxes alone, so loops and outer arcs are never clipped.
+
+Routing is pure and deterministic (no randomness, input order does not matter),
+re-runs only when positions change (drag, new graph), never on highlight or
+selection, and never mutates the adapted graph or compiler output.
 
 ## Graph controls
 

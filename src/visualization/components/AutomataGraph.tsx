@@ -3,15 +3,17 @@
  *
  * OWNER: Person 2.
  * Mounts `<ReactFlow />` with custom node and edge types, deterministic
- * layout from `layout/graphLayout.ts`, legend, and controls.
+ * layout from `layout/graphLayout.ts`, edge routing from
+ * `layout/edgeRouting.ts`, legend, and controls.
  */
 
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   Background,
-  MarkerType,
   ReactFlow,
   ReactFlowProvider,
+  useReactFlow,
+  useStore,
   type Node,
   type OnNodesChange,
   type XYPosition,
@@ -20,6 +22,7 @@ import {
 import type { AutomatonKind, GraphHighlight, StateNodeData } from '../types';
 import type { AdaptedGraph } from '../adapters/nfaAdapter';
 import { layoutAutomaton } from '../layout/graphLayout';
+import { buildFlowEdges, routeGraph } from '../adapters/flowEdges';
 import { StateNode, type StateNodeType } from './StateNode';
 import { TransitionEdge, type TransitionEdgeType } from './TransitionEdge';
 import { EmptyGraphState } from './EmptyGraphState';
@@ -60,21 +63,18 @@ interface AutomataGraphProps {
   children?: ReactNode;
 }
 
-/**
- * Pixel separation between adjacent parallel/bidirectional edges.
- * Applied as a vertical control-point bow in `TransitionEdge`.
- */
-const PARALLEL_SPREAD_PX = 44;
-
-/** Key grouping edges that share the same undirected state pair. */
-function unorderedPairKey(from: number, to: number): string {
-  return from <= to ? `${from}-${to}` : `${to}-${from}`;
-}
+/** Fraction of the content box kept as margin when fitting the view. */
+const FIT_PADDING = 0.12;
+/** Smallest frame we fit to, so a one- or two-state DFA isn't blown up to max zoom. */
+const MIN_FIT_WIDTH = 420;
+const MIN_FIT_HEIGHT = 240;
 
 /** Per-node overrides kept across controlled ReactFlow updates. */
 interface NodeOverride {
   position?: XYPosition;
   selected?: boolean;
+  /** Measured size; React Flow needs it echoed back to treat a node as initialized. */
+  measured?: { width: number; height: number };
 }
 
 function AutomataGraphInner({
@@ -98,8 +98,15 @@ function AutomataGraphInner({
   const graphKey = layoutKey(graph);
 
   // New layout/graph → drop manual positions so the deterministic layout applies.
+  // Measured sizes are kept: React Flow does not re-report an unchanged size.
   useEffect(() => {
-    setNodeOverrides({});
+    setNodeOverrides((prev) => {
+      const kept: Record<string, NodeOverride> = {};
+      for (const [id, o] of Object.entries(prev)) {
+        if (o.measured) kept[id] = { measured: o.measured };
+      }
+      return kept;
+    });
   }, [graphKey]);
 
   // 1. Calculate deterministic layout
@@ -144,6 +151,7 @@ function AutomataGraphInner({
         type: 'state',
         position: pos,
         selected: override?.selected,
+        measured: override?.measured,
         data: {
           ...node.data,
           isHighlighted,
@@ -163,86 +171,74 @@ function AutomataGraphInner({
     selectedStateId,
   ]);
 
-  // 3. Prepare React Flow edges with highlighting, markers, and parallel offsets
-  const flowEdges: TransitionEdgeType[] = useMemo(() => {
+  // 3. Route every edge at once from the current node centres. Depends only on
+  //    geometry (not on highlight/selection), so simulation steps never re-route.
+  const routing = useMemo(() => {
     if (!hasContent) {
-      return [];
+      return null;
     }
+    return routeGraph(
+      graph,
+      (id, stateId) => nodeOverrides[id]?.position ?? layout.get(stateId) ?? { x: 0, y: 0 }
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on positions, not selection
+  }, [graph, hasContent, layout, positionKey(nodeOverrides)]);
 
-    // Group by *undirected* pair so a→b and b→a also separate, not just
-    // same-direction parallels (getBezierPath curvature is zero for both cases).
-    const parallelCounts = new Map<string, number>();
-    for (const edge of graph.edges) {
-      const key = unorderedPairKey(Number(edge.source), Number(edge.target));
-      parallelCounts.set(key, (parallelCounts.get(key) ?? 0) + 1);
+  // 4. Prepare React Flow edges with highlighting, markers, and routed geometry
+  const flowEdges: TransitionEdgeType[] = useMemo(
+    () => (hasContent ? buildFlowEdges(graph, routing, highlight, highlightedTransition) : []),
+    [graph, hasContent, routing, highlight, highlightedTransition]
+  );
+
+  // 5. Fit to the routed content (states + loops + arcs + labels). React Flow's
+  //    own fitView only sees node boxes and clips self-loops and outer arcs.
+  const { fitBounds, setViewport } = useReactFlow();
+  const viewportWidth = useStore((s) => s.width);
+  const viewportHeight = useStore((s) => s.height);
+  // fitBounds is a no-op until React Flow's pan/zoom exists; `onInit` marks that.
+  // (useNodesInitialized can't be used: this controlled graph ignores
+  // dimension changes, and the routed bounds don't need DOM measurement.)
+  const [flowReady, setFlowReady] = useState(false);
+  const handleInit = useCallback(() => setFlowReady(true), []);
+  useEffect(() => {
+    if (!hasContent) setFlowReady(false);
+  }, [hasContent]);
+  const boundsRef = useRef(routing?.bounds);
+  useEffect(() => {
+    boundsRef.current = routing?.bounds;
+  }, [routing]);
+
+  const fitContent = useCallback(
+    (duration = 0) => {
+      const bounds = boundsRef.current;
+      if (bounds && (bounds.width > 0 || bounds.height > 0)) {
+        const width = Math.max(bounds.width, MIN_FIT_WIDTH);
+        const height = Math.max(bounds.height, MIN_FIT_HEIGHT);
+        const frame = {
+          x: bounds.x - (width - bounds.width) / 2,
+          y: bounds.y - (height - bounds.height) / 2,
+          width,
+          height,
+        };
+        fitBounds(frame, { padding: FIT_PADDING, duration });
+      }
+    },
+    [fitBounds]
+  );
+
+  // Re-fit whenever a different automaton is shown (new expression / view) or
+  // the canvas is resized, so the first fit never uses a stale container size.
+  useEffect(() => {
+    if (flowReady && viewportWidth > 0 && viewportHeight > 0) {
+      fitContent();
     }
-    const parallelSeen = new Map<string, number>();
+  }, [flowReady, graphKey, viewportWidth, viewportHeight, fitContent]);
 
-    return graph.edges.map((edge) => {
-      const from = Number(edge.source);
-      const to = Number(edge.target);
-
-      const pairKey = unorderedPairKey(from, to);
-      const parallelCount = parallelCounts.get(pairKey) ?? 1;
-      const parallelIndex = parallelSeen.get(pairKey) ?? 0;
-      parallelSeen.set(pairKey, parallelIndex + 1);
-      const parallelOffset =
-        parallelCount <= 1
-          ? 0
-          : (parallelIndex - (parallelCount - 1) / 2) * PARALLEL_SPREAD_PX;
-
-      const isHighlighted =
-        Boolean(
-          highlight?.transitions?.some(
-            (ht) =>
-              ht.from === from &&
-              ht.to === to &&
-              (ht.symbol === undefined || edge.data.symbols.includes(ht.symbol))
-          )
-        ) ||
-        Boolean(
-          highlightedTransition &&
-          highlightedTransition.from === from &&
-          highlightedTransition.to === to &&
-          (highlightedTransition.symbol === undefined ||
-            edge.data.symbols.includes(highlightedTransition.symbol))
-        );
-
-      const isSelfLoop = from === to;
-      const isBackEdge = from > to;
-
-      const sourceHandle = isSelfLoop ? 'top' : isBackEdge ? 'bottom' : 'right';
-      const targetHandle = isSelfLoop ? 'top-target' : isBackEdge ? 'bottom-target' : 'left';
-
-      const markerColor = isHighlighted
-        ? 'var(--edge-highlight)'
-        : edge.data.isEpsilon
-          ? 'var(--edge-epsilon)'
-          : 'var(--edge)';
-
-      return {
-        id: edge.id,
-        source: edge.source,
-        target: edge.target,
-        sourceHandle,
-        targetHandle,
-        type: 'transition',
-        data: {
-          ...edge.data,
-          isHighlighted,
-          parallelIndex,
-          parallelCount,
-          parallelOffset,
-        },
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          color: markerColor,
-          width: 14,
-          height: 14,
-        },
-      };
-    });
-  }, [graph, hasContent, highlight?.transitions, highlightedTransition]);
+  const handleFit = useCallback(() => fitContent(200), [fitContent]);
+  const handleReset = useCallback(() => {
+    setViewport({ x: 0, y: 0, zoom: 1 });
+    fitContent(200);
+  }, [fitContent, setViewport]);
 
   // Handle node selection
   const handleNodeClick = useCallback(
@@ -263,6 +259,15 @@ function AutomataGraphInner({
         if (change.type === 'position' && change.position) {
           next ??= { ...prev };
           next[change.id] = { ...next[change.id], position: change.position };
+        } else if (change.type === 'dimensions' && change.dimensions) {
+          const prevSize = prev[change.id]?.measured;
+          if (
+            prevSize?.width !== change.dimensions.width ||
+            prevSize?.height !== change.dimensions.height
+          ) {
+            next ??= { ...prev };
+            next[change.id] = { ...next[change.id], measured: { ...change.dimensions } };
+          }
         } else if (change.type === 'select') {
           next ??= { ...prev };
           next[change.id] = { ...next[change.id], selected: change.selected };
@@ -290,8 +295,7 @@ function AutomataGraphInner({
             edgeTypes={edgeTypes}
             onNodesChange={handleNodesChange}
             onNodeClick={handleNodeClick}
-            fitView
-            fitViewOptions={{ padding: 0.25 }}
+            onInit={handleInit}
             minZoom={0.2}
             maxZoom={2.5}
             nodesDraggable={true}
@@ -311,7 +315,7 @@ function AutomataGraphInner({
       </div>
       <figcaption className="automata-graph__footer">
         <GraphLegend kind={kind} />
-        <GraphControls />
+        <GraphControls onFitView={handleFit} onReset={handleReset} />
       </figcaption>
     </figure>
   );
@@ -323,6 +327,15 @@ export function AutomataGraph(props: AutomataGraphProps) {
       <AutomataGraphInner {...props} />
     </ReactFlowProvider>
   );
+}
+
+/** Key of the manually dragged positions (ignores selection-only overrides). */
+function positionKey(overrides: Record<string, NodeOverride>): string {
+  return Object.keys(overrides)
+    .sort()
+    .filter((id) => overrides[id].position)
+    .map((id) => `${id}:${overrides[id].position!.x},${overrides[id].position!.y}`)
+    .join(';');
 }
 
 /** Stable key for the current graph identity (used to reset drag overrides). */

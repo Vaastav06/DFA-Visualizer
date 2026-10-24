@@ -9,6 +9,7 @@
  */
 
 import type { DFA, NFA, SyntaxNode, SyntaxNodeType } from '../compiler/types';
+import type { EdgeRoute } from './layout/edgeRouting';
 
 /** Which automaton or diagram a graph is showing. */
 export type AutomatonKind = 'nfa' | 'dfa' | 'minimized-dfa' | 'syntax-tree';
@@ -79,15 +80,11 @@ export interface TransitionEdgeData extends Record<string, unknown> {
   isEpsilon: boolean;
   /** Set by the UI while animating a simulation. */
   isHighlighted?: boolean;
-  /** Index of this edge among parallel edges sharing the same undirected pair. */
-  parallelIndex?: number;
-  /** Total parallel edges sharing the same undirected pair (incl. reverse). */
-  parallelCount?: number;
   /**
-   * Signed vertical control-point offset in **pixels** that separates this
-   * edge from its parallels / reverse edge. `0` when alone on the pair.
+   * Routed geometry from `layout/edgeRouting.ts` (path, label position).
+   * Computed centrally so sibling, backward and long edges never share a track.
    */
-  parallelOffset?: number;
+  route?: EdgeRoute;
 }
 
 /** Highlighting a graph can apply while the UI animates a simulation run. */

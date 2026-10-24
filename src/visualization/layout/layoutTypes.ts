@@ -27,7 +27,8 @@ export interface LayoutOptions {
 /** Defaults used when a graph component passes no options. */
 export const DEFAULT_LAYOUT_OPTIONS: LayoutOptions = {
   rankSpacing: 160,
-  nodeSpacing: 90,
+  // Leaves ~58px between stacked states: room for a self-loop or a label.
+  nodeSpacing: 110,
   direction: 'LR',
 };
 

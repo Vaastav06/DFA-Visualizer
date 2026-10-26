@@ -33,7 +33,8 @@ export { AstAnalysisTable } from './components/AstAnalysisTable';
 export { FollowposTable } from './components/FollowposTable';
 export { DfaPositionMapping } from './components/DfaPositionMapping';
 
-// Types
+// Types & Constants
+export { DEAD_STATE_ID } from './types';
 export type {
   AutomatonKind,
   AutomataGraphBaseProps,

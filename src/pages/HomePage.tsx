@@ -88,6 +88,7 @@ export function HomePage() {
   const [selectedDfaStateId, setSelectedDfaStateId] = useState<number | null>(null);
   const [selectedMinDfaStateId, setSelectedMinDfaStateId] = useState<number | null>(null);
   const [showComparisonView, setShowComparisonView] = useState(false);
+  const [showDeadState, setShowDeadState] = useState(true);
 
   useEffect(() => {
     setSelectedNodeId(null);
@@ -189,16 +190,33 @@ export function HomePage() {
           )}
           {activeStep === 'dfa' && (
             <div className="stage-graph">
+              <div
+                className="stage-graph__view-toggle"
+                role="group"
+                aria-label="DFA dead state display mode"
+              >
+                <button
+                  type="button"
+                  className={`button button--secondary ${showDeadState ? 'button--primary' : ''}`}
+                  onClick={() => setShowDeadState((prev) => !prev)}
+                  aria-pressed={showDeadState}
+                  title="Toggle visual trap / dead state display (qd)"
+                >
+                  {showDeadState ? 'Dead State (qd): Visible' : 'Dead State (qd): Hidden'}
+                </button>
+              </div>
               <DfaGraph
                 dfa={result.dfa}
                 selectedStateId={selectedDfaStateId}
                 highlightedStateIds={highlightedDfaStateIds}
+                showDeadState={showDeadState}
                 onStateClick={(id) => setSelectedDfaStateId((prev) => (prev === id ? null : id))}
               />
               <div className="table-scroll">
                 <TransitionTable
                   dfa={result.dfa}
                   selectedStateId={selectedDfaStateId}
+                  showDeadState={showDeadState}
                   onSelectState={(id) => setSelectedDfaStateId((prev) => (prev === id ? null : id))}
                 />
               </div>
@@ -232,6 +250,15 @@ export function HomePage() {
                 >
                   Compare with Direct DFA
                 </button>
+                <button
+                  type="button"
+                  className={`button button--secondary ${showDeadState ? 'button--active' : ''}`}
+                  onClick={() => setShowDeadState((prev) => !prev)}
+                  aria-pressed={showDeadState}
+                  title="Toggle visual trap / dead state display (qd)"
+                >
+                  {showDeadState ? 'Trap State: ON' : 'Trap State: OFF'}
+                </button>
               </div>
 
               {!showComparisonView ? (
@@ -241,6 +268,7 @@ export function HomePage() {
                     kind="minimized-dfa"
                     selectedStateId={selectedMinDfaStateId}
                     highlightedStateIds={highlightedMinDfaStateIds}
+                    showDeadState={showDeadState}
                     onStateClick={(id) =>
                       setSelectedMinDfaStateId((prev) => (prev === id ? null : id))
                     }
@@ -250,6 +278,7 @@ export function HomePage() {
                       dfa={result.minimizedDfa}
                       caption="Minimized DFA transition table"
                       selectedStateId={selectedMinDfaStateId}
+                      showDeadState={showDeadState}
                       onSelectState={(id) =>
                         setSelectedMinDfaStateId((prev) => (prev === id ? null : id))
                       }
@@ -274,6 +303,7 @@ export function HomePage() {
                   onSelectMinState={setSelectedMinDfaStateId}
                   selectedDirectStateId={selectedDfaStateId}
                   onSelectDirectState={setSelectedDfaStateId}
+                  showDeadState={showDeadState}
                 />
               )}
             </div>

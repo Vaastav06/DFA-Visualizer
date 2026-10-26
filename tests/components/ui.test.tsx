@@ -20,7 +20,7 @@ import { LoadingState } from '../../src/components/LoadingState';
 import { AlgorithmExplanation } from '../../src/components/AlgorithmExplanation';
 import { EXAMPLE_EXPRESSIONS } from '../../src/data/examples';
 import { MOCK_DFA, MOCK_MINIMIZED_DFA } from '../fixtures/mockAutomata';
-import { PIPELINE_STEPS } from '../../src/compiler';
+import { PIPELINE_STEPS, type DFA } from '../../src/compiler';
 
 describe('<RegexInput />', () => {
   it('submits the current expression on button click and Enter key', async () => {
@@ -241,6 +241,51 @@ describe('<StringSimulator />', () => {
 
     expect(screen.getByRole('status')).toHaveTextContent(/REJECTED/i);
     expect(screen.getByText(/not in the alphabet/i)).toBeInTheDocument();
+  });
+
+  it('routes missing transitions to dead state (qd) and auto-plays multi-step strings', async () => {
+    // DFA for (a|b)(c|d)
+    const dfaExample: DFA = {
+      states: [
+        { id: 0, positions: [1, 2], isAccepting: false },
+        { id: 1, positions: [3, 4], isAccepting: false },
+        { id: 2, positions: [5], isAccepting: true },
+      ],
+      alphabet: ['a', 'b', 'c', 'd'],
+      startState: 0,
+      acceptStates: [2],
+      transitions: [
+        { from: 0, to: 1, symbol: 'a' },
+        { from: 0, to: 1, symbol: 'b' },
+        { from: 1, to: 2, symbol: 'c' },
+        { from: 1, to: 2, symbol: 'd' },
+      ],
+    };
+
+    render(<StringSimulator dfa={dfaExample} />);
+
+    const input = screen.getByLabelText(/input string/i);
+    // 'ab' is rejected at step 2 because q1 has no transition on 'b'
+    await userEvent.type(input, 'ab{Enter}');
+
+    expect(screen.getByRole('status')).toHaveTextContent(/REJECTED/i);
+    // Step 2 shows transition to dead state qd
+    expect(screen.getAllByText(/trap state/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/qd/i).length).toBeGreaterThan(0);
+
+    // Multi-step string auto-advances, so pause button is initially present
+    const pauseButton = screen.queryByRole('button', { name: /pause simulation animation/i });
+    expect(pauseButton).toBeInTheDocument();
+
+    // Clicking on step 1 in the trace jumps directly to step 1
+    const step1 = screen.getByTitle(/jump to step 1/i);
+    await userEvent.click(step1);
+    expect(step1).toHaveClass('current');
+
+    // Toggle trap state off
+    const trapStateToggle = screen.getByRole('button', { name: /hide trap state/i });
+    await userEvent.click(trapStateToggle);
+    expect(screen.getByText(/\(no transition\)/i)).toBeInTheDocument();
   });
 });
 

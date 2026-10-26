@@ -13,7 +13,7 @@
 
 import { useState, useCallback, useMemo, useEffect, type FormEvent } from 'react';
 import { simulate, type DFA, type SimulationResult } from '../compiler';
-import { DfaGraph } from '../visualization';
+import { DEAD_STATE_ID, DfaGraph } from '../visualization';
 import { formatStateId } from '../hooks/useCompiler';
 
 interface StringSimulatorProps {
@@ -26,6 +26,7 @@ export function StringSimulator({ dfa }: StringSimulatorProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState<number>(800);
+  const [showDeadState, setShowDeadState] = useState(true);
 
   // Clear stale simulation results whenever the DFA changes
   useEffect(() => {
@@ -38,10 +39,11 @@ export function StringSimulator({ dfa }: StringSimulatorProps) {
     (event?: FormEvent) => {
       event?.preventDefault();
       if (!dfa) return;
-      setIsPlaying(false);
       const simResult = simulate(dfa, input);
       setResult(simResult);
       setCurrentStep(0);
+      // Automatically advance through steps when running simulation
+      setIsPlaying(simResult.steps.length > 1);
     },
     [dfa, input]
   );
@@ -85,16 +87,17 @@ export function StringSimulator({ dfa }: StringSimulatorProps) {
     }
     const step = result.steps[currentStep];
     if (!step) return undefined;
+    const targetState = step.toState !== null ? step.toState : showDeadState ? DEAD_STATE_ID : null;
     return {
-      states: [step.fromState, step.toState ?? step.fromState].filter(
+      states: [step.fromState, targetState ?? step.fromState].filter(
         (s): s is number => s !== null
       ),
       transitions:
-        step.toState !== null
-          ? [{ from: step.fromState, to: step.toState, symbol: step.symbol }]
+        targetState !== null
+          ? [{ from: step.fromState, to: targetState, symbol: step.symbol }]
           : [],
     };
-  }, [result, currentStep, dfa]);
+  }, [result, currentStep, dfa, showDeadState]);
 
   const activeStateId = useMemo(() => {
     if (!result) return undefined;
@@ -103,16 +106,19 @@ export function StringSimulator({ dfa }: StringSimulatorProps) {
     }
     const step = result.steps[currentStep];
     if (!step) return undefined;
-    return step.toState ?? step.fromState;
-  }, [result, currentStep, dfa]);
+    if (step.toState !== null) return step.toState;
+    return showDeadState ? DEAD_STATE_ID : step.fromState;
+  }, [result, currentStep, dfa, showDeadState]);
 
   const nextStep = useCallback(() => {
+    setIsPlaying(false);
     if (result && currentStep < result.steps.length - 1) {
       setCurrentStep((c) => c + 1);
     }
   }, [result, currentStep]);
 
   const prevStep = useCallback(() => {
+    setIsPlaying(false);
     if (currentStep > 0) {
       setCurrentStep((c) => c - 1);
     }
@@ -169,19 +175,45 @@ export function StringSimulator({ dfa }: StringSimulatorProps) {
             <div className="simulator__trace">
               <h4>Execution trace</h4>
               <ol className="simulator__steps">
-                {result.steps.map((step, index) => (
-                  <li
-                    key={`${step.index}-${step.fromState}-${step.symbol}`}
-                    className={index === currentStep ? 'current' : ''}
-                  >
-                    <span className="step-index">Step {index + 1}</span>
-                    <span className="step-detail">
-                      {formatStateId(step.fromState)} <span className="arrow">→</span> {step.symbol}{' '}
-                      <span className="arrow">→</span>{' '}
-                      {step.toState !== null ? formatStateId(step.toState) : '(no transition)'}
-                    </span>
-                  </li>
-                ))}
+                {result.steps.map((step, index) => {
+                  const isCurrent = index === currentStep;
+                  const isRejectedStep = step.toState === null;
+                  const itemClass = [
+                    isCurrent ? 'current' : '',
+                    isCurrent && isRejectedStep ? 'current--rejected' : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ');
+
+                  return (
+                    <li
+                      key={`${step.index}-${step.fromState}-${step.symbol}`}
+                      className={itemClass}
+                      onClick={() => {
+                        setIsPlaying(false);
+                        setCurrentStep(index);
+                      }}
+                      style={{ cursor: 'pointer' }}
+                      title={`Jump to step ${index + 1}`}
+                    >
+                      <span className="step-index">Step {index + 1}</span>
+                      <span className="step-detail">
+                        {formatStateId(step.fromState)} <span className="arrow">→</span>{' '}
+                        {step.symbol} <span className="arrow">→</span>{' '}
+                        {step.toState !== null ? (
+                          formatStateId(step.toState)
+                        ) : showDeadState ? (
+                          <span className="step-dead">
+                            {formatStateId(DEAD_STATE_ID)}{' '}
+                            <span className="step-dead-badge">(trap state)</span>
+                          </span>
+                        ) : (
+                          '(no transition)'
+                        )}
+                      </span>
+                    </li>
+                  );
+                })}
               </ol>
 
               <div className="simulator__controls">
@@ -224,6 +256,15 @@ export function StringSimulator({ dfa }: StringSimulatorProps) {
                 >
                   Reset
                 </button>
+                <button
+                  type="button"
+                  className={`button button--secondary ${showDeadState ? 'button--active' : ''}`}
+                  onClick={() => setShowDeadState((p) => !p)}
+                  aria-pressed={showDeadState}
+                  title="Toggle visual trap / dead state display (qd)"
+                >
+                  {showDeadState ? 'Hide Trap State' : 'Trap State (qd)'}
+                </button>
                 <div className="simulator__speed-control">
                   <label htmlFor="simulator-speed" className="simulator__speed-label">
                     Speed:
@@ -254,6 +295,15 @@ export function StringSimulator({ dfa }: StringSimulatorProps) {
               >
                 Reset
               </button>
+              <button
+                type="button"
+                className={`button button--secondary ${showDeadState ? 'button--active' : ''}`}
+                onClick={() => setShowDeadState((p) => !p)}
+                aria-pressed={showDeadState}
+                title="Toggle visual trap / dead state display (qd)"
+              >
+                {showDeadState ? 'Hide Trap State' : 'Trap State (qd)'}
+              </button>
             </div>
           )}
 
@@ -263,6 +313,7 @@ export function StringSimulator({ dfa }: StringSimulatorProps) {
               kind="minimized-dfa"
               highlight={highlight}
               activeStateId={activeStateId}
+              showDeadState={showDeadState}
               height={360}
             />
           </div>
@@ -271,7 +322,7 @@ export function StringSimulator({ dfa }: StringSimulatorProps) {
 
       {!result && (
         <div className="simulator__graph">
-          <DfaGraph dfa={dfa} kind="minimized-dfa" height={360} />
+          <DfaGraph dfa={dfa} kind="minimized-dfa" showDeadState={showDeadState} height={360} />
         </div>
       )}
     </section>

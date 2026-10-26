@@ -9,7 +9,7 @@
  */
 
 import type { DFA } from '../compiler';
-import { formatStateId } from '../hooks/useCompiler';
+import { DEAD_STATE_ID, formatStateId } from '../hooks/useCompiler';
 
 interface TransitionTableProps {
   dfa: DFA;
@@ -17,6 +17,7 @@ interface TransitionTableProps {
   caption?: string;
   selectedStateId?: number | null;
   onSelectState?: (stateId: number) => void;
+  showDeadState?: boolean;
 }
 
 export function TransitionTable({
@@ -24,12 +25,17 @@ export function TransitionTable({
   caption = 'DFA transition table',
   selectedStateId,
   onSelectState,
+  showDeadState = false,
 }: TransitionTableProps) {
   const acceptSet = new Set(dfa.acceptStates);
 
   function targetFor(from: number, symbol: string): number | undefined {
     return dfa.transitions.find((t) => t.from === from && t.symbol === symbol)?.to;
   }
+
+  const hasMissingTransitions = dfa.states.some((state) =>
+    dfa.alphabet.some((symbol) => targetFor(state.id, symbol) === undefined)
+  );
 
   return (
     <table className="transition-table">
@@ -66,7 +72,11 @@ export function TransitionTable({
                 return (
                   <td key={symbol}>
                     {target === undefined ? (
-                      <span className="empty-cell">—</span>
+                      showDeadState ? (
+                        <span className="dead-state-target">{formatStateId(DEAD_STATE_ID)}</span>
+                      ) : (
+                        <span className="empty-cell">—</span>
+                      )
                     ) : (
                       formatStateId(target)
                     )}
@@ -76,6 +86,26 @@ export function TransitionTable({
             </tr>
           );
         })}
+        {showDeadState && hasMissingTransitions && (
+          <tr
+            key={DEAD_STATE_ID}
+            className={
+              selectedStateId === DEAD_STATE_ID ? 'transition-table__row--selected' : undefined
+            }
+            onClick={() => onSelectState?.(DEAD_STATE_ID)}
+            style={onSelectState ? { cursor: 'pointer' } : undefined}
+          >
+            <th scope="row">
+              {formatStateId(DEAD_STATE_ID)}
+              <span className="state-badge state-badge--dead">trap</span>
+            </th>
+            {dfa.alphabet.map((symbol) => (
+              <td key={symbol}>
+                <span className="dead-state-target">{formatStateId(DEAD_STATE_ID)}</span>
+              </td>
+            ))}
+          </tr>
+        )}
       </tbody>
     </table>
   );

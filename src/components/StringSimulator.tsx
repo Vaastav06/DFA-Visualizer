@@ -25,6 +25,7 @@ export function StringSimulator({ dfa }: StringSimulatorProps) {
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [speed, setSpeed] = useState<number>(800);
 
   // Clear stale simulation results whenever the DFA changes
   useEffect(() => {
@@ -59,10 +60,10 @@ export function StringSimulator({ dfa }: StringSimulatorProps) {
         setIsPlaying(false);
         return c;
       });
-    }, 900);
+    }, speed);
 
     return () => clearTimeout(timer);
-  }, [isPlaying, result, currentStep]);
+  }, [isPlaying, result, currentStep, speed]);
 
   const togglePlay = useCallback(() => {
     if (!result || result.steps.length === 0) return;
@@ -184,6 +185,9 @@ export function StringSimulator({ dfa }: StringSimulatorProps) {
               </ol>
 
               <div className="simulator__controls">
+                <span className="simulator__progress-indicator" aria-live="polite">
+                  Step {currentStep + 1} of {result.steps.length}
+                </span>
                 <button
                   type="button"
                   className="button button--secondary"
@@ -220,6 +224,22 @@ export function StringSimulator({ dfa }: StringSimulatorProps) {
                 >
                   Reset
                 </button>
+                <div className="simulator__speed-control">
+                  <label htmlFor="simulator-speed" className="simulator__speed-label">
+                    Speed:
+                  </label>
+                  <select
+                    id="simulator-speed"
+                    className="simulator__speed-select"
+                    value={speed}
+                    onChange={(event) => setSpeed(Number(event.target.value))}
+                    aria-label="Playback speed"
+                  >
+                    <option value={1400}>0.5x</option>
+                    <option value={800}>1x</option>
+                    <option value={400}>2x</option>
+                  </select>
+                </div>
               </div>
             </div>
           )}

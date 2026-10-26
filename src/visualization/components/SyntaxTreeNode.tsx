@@ -44,6 +44,13 @@ export function SyntaxTreeNode({ data, selected }: NodeProps<SyntaxTreeNodeType>
     .filter(Boolean)
     .join(', ');
 
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      event.currentTarget.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    }
+  };
+
   return (
     <div
       className={classNames}
@@ -52,6 +59,7 @@ export function SyntaxTreeNode({ data, selected }: NodeProps<SyntaxTreeNodeType>
       aria-label={ariaDescription}
       tabIndex={0}
       data-node-id={data.nodeId}
+      onKeyDown={handleKeyDown}
     >
       <Handle
         type="target"

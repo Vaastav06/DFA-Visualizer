@@ -296,4 +296,17 @@ describe('<SyntaxTreeGraph />', () => {
     expect(details).toHaveTextContent('Firstpos: {1}');
     expect(details).toHaveTextContent('Lastpos: {1}');
   });
+
+  it('supports selecting syntax tree node via Enter keyboard key', () => {
+    const onNodeClick = vi.fn();
+    const { container } = render(
+      <SyntaxTreeGraph tree={MOCK_COMPILATION_RESULT.syntaxTree} onNodeClick={onNodeClick} />
+    );
+
+    const endNode = container.querySelector('.syntax-tree-node--end-marker')!;
+    expect(endNode).toBeInTheDocument();
+    fireEvent.keyDown(endNode, { key: 'Enter' });
+
+    expect(onNodeClick).toHaveBeenCalled();
+  });
 });

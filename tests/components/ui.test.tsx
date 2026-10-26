@@ -13,12 +13,13 @@ import { StepContent } from '../../src/components/StepContent';
 import { TokenList } from '../../src/components/TokenList';
 import { TransitionTable } from '../../src/components/TransitionTable';
 import { DfaMapping } from '../../src/components/DfaMapping';
+import { DfaComparison } from '../../src/components/DfaComparison';
 import { StringSimulator } from '../../src/components/StringSimulator';
 import { EmptyState } from '../../src/components/EmptyState';
 import { LoadingState } from '../../src/components/LoadingState';
 import { AlgorithmExplanation } from '../../src/components/AlgorithmExplanation';
 import { EXAMPLE_EXPRESSIONS } from '../../src/data/examples';
-import { MOCK_DFA } from '../fixtures/mockAutomata';
+import { MOCK_DFA, MOCK_MINIMIZED_DFA } from '../fixtures/mockAutomata';
 import { PIPELINE_STEPS } from '../../src/compiler';
 
 describe('<RegexInput />', () => {
@@ -46,6 +47,16 @@ describe('<RegexInput />', () => {
     const input = screen.getByLabelText(/regular expression/i);
     expect(input).toHaveAttribute('aria-invalid', 'true');
     expect(input).toHaveAttribute('aria-describedby', 'custom-err');
+  });
+
+  it('clears expression when Clear button is clicked', async () => {
+    const onChange = vi.fn();
+    render(<RegexInput value="a|b" onChange={onChange} />);
+
+    const clearButton = screen.getByRole('button', { name: /clear expression/i });
+    expect(clearButton).toBeInTheDocument();
+    await userEvent.click(clearButton);
+    expect(onChange).toHaveBeenCalledWith('');
   });
 });
 
@@ -169,6 +180,35 @@ describe('<TransitionTable /> and <DfaMapping />', () => {
   });
 });
 
+describe('<DfaComparison />', () => {
+  it('renders metric cards, comparison graphs and equivalence table', async () => {
+    const onSelectMin = vi.fn();
+    const onSelectDirect = vi.fn();
+    render(
+      <DfaComparison
+        directDfa={MOCK_DFA}
+        minimizedDfa={MOCK_MINIMIZED_DFA}
+        selectedMinStateId={null}
+        onSelectMinState={onSelectMin}
+        selectedDirectStateId={null}
+        onSelectDirectState={onSelectDirect}
+      />
+    );
+
+    expect(screen.getByRole('region', { name: /minimization summary/i })).toBeInTheDocument();
+    expect(screen.getByText('Direct DFA (Constructed)')).toBeInTheDocument();
+    expect(screen.getByText('Minimized DFA (Moore Refined)')).toBeInTheDocument();
+    expect(screen.getByRole('table', { name: /state equivalence mapping/i })).toBeInTheDocument();
+
+    const minStateTh = screen.getAllByText('q0', { selector: 'th' })[0];
+    const row = minStateTh.closest('tr');
+    if (row) {
+      await userEvent.click(row);
+      expect(onSelectMin).toHaveBeenCalled();
+    }
+  });
+});
+
 describe('<StringSimulator />', () => {
   it('runs a valid string, displays verdict and trace, and steps through trace', async () => {
     render(<StringSimulator dfa={MOCK_DFA} />);
@@ -177,12 +217,16 @@ describe('<StringSimulator />', () => {
     await userEvent.type(input, 'a{Enter}');
 
     expect(screen.getByRole('status')).toHaveTextContent(/ACCEPTED/i);
-    expect(screen.getByText(/Step 1/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Step 1/i).length).toBeGreaterThan(0);
 
     // Toggle Play/Pause animation control
     const playButton = screen.getByRole('button', { name: /play simulation animation/i });
     expect(playButton).toBeInTheDocument();
     await userEvent.click(playButton);
+
+    // Speed selector
+    const speedSelect = screen.getByRole('combobox', { name: /playback speed/i });
+    expect(speedSelect).toBeInTheDocument();
 
     // Reset simulation
     await userEvent.click(screen.getByRole('button', { name: /reset simulation/i }));

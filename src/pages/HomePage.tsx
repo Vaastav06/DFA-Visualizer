@@ -31,6 +31,7 @@ import { PositionTable } from '../visualization';
 import { AstAnalysisTable } from '../visualization';
 import { TransitionTable } from '../components/TransitionTable';
 import { DfaMapping } from '../components/DfaMapping';
+import { DfaComparison } from '../components/DfaComparison';
 import { StringSimulator } from '../components/StringSimulator';
 import { useAppContext } from '../context/AppContext';
 import { PIPELINE_STEPS } from '../compiler';
@@ -86,6 +87,7 @@ export function HomePage() {
   const [selectedPosition, setSelectedPosition] = useState<number | null>(null);
   const [selectedDfaStateId, setSelectedDfaStateId] = useState<number | null>(null);
   const [selectedMinDfaStateId, setSelectedMinDfaStateId] = useState<number | null>(null);
+  const [showComparisonView, setShowComparisonView] = useState(false);
 
   useEffect(() => {
     setSelectedNodeId(null);
@@ -211,33 +213,69 @@ export function HomePage() {
           )}
           {activeStep === 'minimized' && (
             <div className="stage-graph">
-              <DfaGraph
-                dfa={result.minimizedDfa}
-                kind="minimized-dfa"
-                selectedStateId={selectedMinDfaStateId}
-                highlightedStateIds={highlightedMinDfaStateIds}
-                onStateClick={(id) => setSelectedMinDfaStateId((prev) => (prev === id ? null : id))}
-              />
-              <div className="table-scroll">
-                <TransitionTable
-                  dfa={result.minimizedDfa}
-                  caption="Minimized DFA transition table"
-                  selectedStateId={selectedMinDfaStateId}
-                  onSelectState={(id) =>
-                    setSelectedMinDfaStateId((prev) => (prev === id ? null : id))
-                  }
-                />
+              <div
+                className="stage-graph__view-toggle"
+                role="group"
+                aria-label="Minimized DFA view mode"
+              >
+                <button
+                  type="button"
+                  className={`button button--secondary ${!showComparisonView ? 'button--primary' : ''}`}
+                  onClick={() => setShowComparisonView(false)}
+                >
+                  Standard View
+                </button>
+                <button
+                  type="button"
+                  className={`button button--secondary ${showComparisonView ? 'button--primary' : ''}`}
+                  onClick={() => setShowComparisonView(true)}
+                >
+                  Compare with Direct DFA
+                </button>
               </div>
-              <div className="table-scroll">
-                <DfaMapping
-                  dfa={result.minimizedDfa}
-                  caption="Minimized DFA state mapping"
-                  selectedStateId={selectedMinDfaStateId}
-                  onSelectState={(id) =>
-                    setSelectedMinDfaStateId((prev) => (prev === id ? null : id))
-                  }
+
+              {!showComparisonView ? (
+                <>
+                  <DfaGraph
+                    dfa={result.minimizedDfa}
+                    kind="minimized-dfa"
+                    selectedStateId={selectedMinDfaStateId}
+                    highlightedStateIds={highlightedMinDfaStateIds}
+                    onStateClick={(id) =>
+                      setSelectedMinDfaStateId((prev) => (prev === id ? null : id))
+                    }
+                  />
+                  <div className="table-scroll">
+                    <TransitionTable
+                      dfa={result.minimizedDfa}
+                      caption="Minimized DFA transition table"
+                      selectedStateId={selectedMinDfaStateId}
+                      onSelectState={(id) =>
+                        setSelectedMinDfaStateId((prev) => (prev === id ? null : id))
+                      }
+                    />
+                  </div>
+                  <div className="table-scroll">
+                    <DfaMapping
+                      dfa={result.minimizedDfa}
+                      caption="Minimized DFA state mapping"
+                      selectedStateId={selectedMinDfaStateId}
+                      onSelectState={(id) =>
+                        setSelectedMinDfaStateId((prev) => (prev === id ? null : id))
+                      }
+                    />
+                  </div>
+                </>
+              ) : (
+                <DfaComparison
+                  directDfa={result.dfa}
+                  minimizedDfa={result.minimizedDfa}
+                  selectedMinStateId={selectedMinDfaStateId}
+                  onSelectMinState={setSelectedMinDfaStateId}
+                  selectedDirectStateId={selectedDfaStateId}
+                  onSelectDirectState={setSelectedDfaStateId}
                 />
-              </div>
+              )}
             </div>
           )}
           {activeStep === 'simulation' && <StringSimulator dfa={result.minimizedDfa} />}

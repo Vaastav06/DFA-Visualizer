@@ -14,6 +14,7 @@ import {
   PositionBadge,
   PositionTable,
 } from '../../src/visualization';
+import { TransitionTable } from '../../src/components/TransitionTable';
 import { MOCK_COMPILATION_RESULT, MOCK_DFA } from '../fixtures/mockAutomata';
 
 describe('PositionBadge', () => {
@@ -169,5 +170,29 @@ describe('DfaPositionMapping', () => {
 
     fireEvent.click(row0);
     expect(onSelectState).toHaveBeenCalledWith(0);
+  });
+});
+
+describe('TransitionTable', () => {
+  it('renders dead state row and targets when showDeadState is true', () => {
+    const partialDfa = {
+      states: [
+        { id: 0, positions: [1], isAccepting: false },
+        { id: 1, positions: [2], isAccepting: true },
+      ],
+      alphabet: ['a', 'b'],
+      startState: 0,
+      acceptStates: [1],
+      transitions: [{ from: 0, to: 1, symbol: 'a' }],
+    };
+
+    const { rerender } = render(<TransitionTable dfa={partialDfa} showDeadState={false} />);
+    expect(screen.getAllByText('—').length).toBe(3);
+    expect(screen.queryByText('qd')).not.toBeInTheDocument();
+
+    rerender(<TransitionTable dfa={partialDfa} showDeadState={true} />);
+    expect(screen.queryByText('—')).not.toBeInTheDocument();
+    expect(screen.getAllByText('qd').length).toBeGreaterThan(0);
+    expect(screen.getByText('trap')).toBeInTheDocument();
   });
 });

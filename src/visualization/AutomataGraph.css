@@ -124,6 +124,21 @@
   box-shadow: 0 0 0 4px var(--warning-subtle);
 }
 
+/* Dead / trap state styling */
+.state-node--dead {
+  border: 2px dashed var(--border-strong);
+  background: var(--surface-sunken);
+  color: var(--text-secondary);
+}
+
+.state-node--dead.state-node--active,
+.state-node--dead.state-node--highlighted {
+  border-color: var(--error, #dc2626);
+  background: var(--error-subtle, #fef2f2);
+  color: var(--error, #dc2626);
+  box-shadow: 0 0 0 4px var(--error-subtle, #fef2f2);
+}
+
 .state-node--accepting.state-node--highlighted,
 .state-node--accepting.state-node--active {
   box-shadow:
@@ -471,6 +486,19 @@
   border-radius: 0;
   width: auto;
   height: auto;
+}
+
+.graph-legend__swatch--dead {
+  border: 1.5px dashed var(--border-strong);
+  background: var(--surface-sunken);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 .graph-legend__swatch--epsilon {

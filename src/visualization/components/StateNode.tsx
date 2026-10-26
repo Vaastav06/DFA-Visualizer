@@ -15,19 +15,21 @@
  */
 
 import { Handle, Position, type NodeProps, type Node } from '@xyflow/react';
-import type { StateNodeData } from '../types';
+import { DEAD_STATE_ID, type StateNodeData } from '../types';
 
 export type StateNodeType = Node<StateNodeData, 'state'>;
 
 export function StateNode({ data, selected }: NodeProps<StateNodeType>) {
   const isSelected = Boolean(data.isSelected || selected);
+  const isDead = Boolean(data.isDeadState || data.stateId === DEAD_STATE_ID);
   const posList = data.positions ?? data.nfaStates ?? [];
-  const posString = posList.length > 0 ? `{${posList.join(',')}}` : '';
+  const posString = isDead ? '∅' : posList.length > 0 ? `{${posList.join(',')}}` : '';
 
   const classNames = [
     'state-node',
     data.isAccepting ? 'state-node--accepting' : '',
     data.isStart ? 'state-node--start' : '',
+    isDead ? 'state-node--dead' : '',
     data.isHighlighted ? 'state-node--highlighted' : '',
     data.isActive ? 'state-node--active' : '',
     isSelected ? 'state-node--selected' : '',
@@ -35,23 +37,29 @@ export function StateNode({ data, selected }: NodeProps<StateNodeType>) {
     .filter(Boolean)
     .join(' ');
 
-  const ariaDescription = [
-    `State ${data.label}`,
-    data.isStart ? '(start state)' : '',
-    data.isAccepting ? '(accepting state)' : '',
-    data.isHighlighted || data.isActive ? '(active simulation state)' : '',
-    posList.length > 0 ? `positions ${posList.join(' ')}` : '',
-  ]
-    .filter(Boolean)
-    .join(', ');
+  const ariaDescription = isDead
+    ? `Dead state ${data.label}, trap state, non-accepting, positions ∅${
+        data.isHighlighted || data.isActive ? ', active simulation state' : ''
+      }`
+    : [
+        `State ${data.label}`,
+        data.isStart ? '(start state)' : '',
+        data.isAccepting ? '(accepting state)' : '',
+        data.isHighlighted || data.isActive ? '(active simulation state)' : '',
+        posList.length > 0 ? `positions ${posList.join(' ')}` : '',
+      ]
+        .filter(Boolean)
+        .join(', ');
 
-  const tooltip = [
-    data.isStart ? 'Start state' : '',
-    data.isAccepting ? 'Accepting state' : 'Non-accepting state',
-    posList.length > 0 ? `Positions: {${posList.join(', ')}}` : '',
-  ]
-    .filter(Boolean)
-    .join('\n');
+  const tooltip = isDead
+    ? 'Dead state (trap state)\nNon-accepting\nPositions: ∅'
+    : [
+        data.isStart ? 'Start state' : '',
+        data.isAccepting ? 'Accepting state' : 'Non-accepting state',
+        posList.length > 0 ? `Positions: {${posList.join(', ')}}` : '',
+      ]
+        .filter(Boolean)
+        .join('\n');
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -140,12 +148,16 @@ export function StateNode({ data, selected }: NodeProps<StateNodeType>) {
       {isSelected && (
         <div className="graph-node-details" role="status">
           <div className="graph-node-details__status">
-            {data.isAccepting ? 'Accepting' : 'Non-accepting'}
+            {isDead ? 'Trap State (Dead State)' : data.isAccepting ? 'Accepting' : 'Non-accepting'}
             {data.isStart ? ' · start' : ''}
           </div>
-          {posList.length > 0 && (
-            <div className="graph-node-details__line">{`Positions: {${posList.join(', ')}}`}</div>
-          )}
+          <div className="graph-node-details__line">
+            {isDead
+              ? 'Positions: ∅ (trap state)'
+              : posList.length > 0
+                ? `Positions: {${posList.join(', ')}}`
+                : ''}
+          </div>
         </div>
       )}
     </div>

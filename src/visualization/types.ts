@@ -11,6 +11,9 @@
 import type { DFA, NFA, SyntaxNode, SyntaxNodeType } from '../compiler/types';
 import type { EdgeRoute } from './layout/edgeRouting';
 
+/** Numeric state id assigned to the visual dead/trap state. */
+export const DEAD_STATE_ID = -1;
+
 /** Which automaton or diagram a graph is showing. */
 export type AutomatonKind = 'nfa' | 'dfa' | 'minimized-dfa' | 'syntax-tree';
 
@@ -22,6 +25,8 @@ export interface StateNodeData extends Record<string, unknown> {
   label: string;
   isStart: boolean;
   isAccepting: boolean;
+  /** Whether this state represents the visual dead / trap state (qd). */
+  isDeadState?: boolean;
   /**
    * Authoritative syntax-tree leaf positions represented by this DFA state.
    * e.g., [1, 2, 3] for q0.
@@ -114,6 +119,8 @@ export interface DfaGraphProps extends AutomataGraphBaseProps {
   dfa: DFA | null | undefined;
   /** Changes the legend/heading wording only. Defaults to `'dfa'`. */
   kind?: Extract<AutomatonKind, 'dfa' | 'minimized-dfa'>;
+  /** Whether to visually render the dead/trap state for missing transitions. */
+  showDeadState?: boolean;
   /** Directly sets the active state during simulation step playback. */
   activeStateId?: number | null;
   /** States to highlight in simulation path or followpos inspections. */

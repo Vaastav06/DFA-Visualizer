@@ -80,6 +80,12 @@ export function GraphLegend({ kind }: GraphLegendProps) {
             />
             active / highlighted
           </li>
+          <li>
+            <span className="graph-legend__swatch graph-legend__swatch--dead" aria-hidden="true">
+              qd
+            </span>
+            dead / trap state
+          </li>
         </>
       )}
     </ul>

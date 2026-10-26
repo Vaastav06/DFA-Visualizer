@@ -16,9 +16,19 @@
  */
 
 import type { DFA } from '../../compiler/types';
+import { DEAD_STATE_ID } from '../types';
 import type { AdaptedGraph, GraphEdge, GraphNode } from './nfaAdapter';
 
-export function adaptDfa(dfa: DFA): AdaptedGraph {
+export interface AdaptDfaOptions {
+  /**
+   * If true and the DFA has missing transitions on symbols in `dfa.alphabet`,
+   * a visual dead/trap state (`qd`) is included with all missing transitions
+   * routed to it and a self-loop on all alphabet symbols.
+   */
+  includeDeadState?: boolean;
+}
+
+export function adaptDfa(dfa: DFA, options?: AdaptDfaOptions): AdaptedGraph {
   if (!dfa || !Array.isArray(dfa.states) || dfa.states.length === 0) {
     return { nodes: [], edges: [] };
   }
@@ -69,6 +79,62 @@ export function adaptDfa(dfa: DFA): AdaptedGraph {
         isEpsilon: false,
       },
     });
+  }
+
+  // Synthesize visual dead / trap state (qd) if requested and missing transitions exist
+  if (options?.includeDeadState) {
+    const alphabet = dfa.alphabet ?? [];
+    const transitionSet = new Set((dfa.transitions ?? []).map((t) => `${t.from}:${t.symbol}`));
+
+    const missingTransitionsByState = new Map<number, string[]>();
+    for (const state of dfa.states) {
+      const missing = alphabet.filter((symbol) => !transitionSet.has(`${state.id}:${symbol}`));
+      if (missing.length > 0) {
+        missingTransitionsByState.set(state.id, missing);
+      }
+    }
+
+    if (missingTransitionsByState.size > 0) {
+      nodes.push({
+        id: String(DEAD_STATE_ID),
+        data: {
+          stateId: DEAD_STATE_ID,
+          label: 'qd',
+          isStart: false,
+          isAccepting: false,
+          isDeadState: true,
+          positions: [],
+          nfaStates: [],
+        },
+      });
+
+      for (const [stateId, missingSymbols] of missingTransitionsByState.entries()) {
+        edges.push({
+          id: `e${stateId}-${DEAD_STATE_ID}`,
+          source: String(stateId),
+          target: String(DEAD_STATE_ID),
+          data: {
+            symbols: [...missingSymbols],
+            label: missingSymbols.join(', '),
+            isEpsilon: false,
+          },
+        });
+      }
+
+      // Self-loop on dead state for all alphabet symbols
+      if (alphabet.length > 0) {
+        edges.push({
+          id: `e${DEAD_STATE_ID}-${DEAD_STATE_ID}`,
+          source: String(DEAD_STATE_ID),
+          target: String(DEAD_STATE_ID),
+          data: {
+            symbols: [...alphabet],
+            label: alphabet.join(', '),
+            isEpsilon: false,
+          },
+        });
+      }
+    }
   }
 
   return { nodes, edges };

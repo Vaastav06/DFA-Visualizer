@@ -55,7 +55,13 @@ export function useCompiler(): UseCompilerApi {
   return { ...state, compile, reset };
 }
 
+/** Numeric state id assigned to the visual dead/trap state. */
+export const DEAD_STATE_ID = -1;
+
 /** Formats a numeric state id for display (STATE ID CONTRACT). */
 export function formatStateId(id: number): string {
+  if (id === DEAD_STATE_ID) {
+    return 'qd';
+  }
   return `q${id}`;
 }

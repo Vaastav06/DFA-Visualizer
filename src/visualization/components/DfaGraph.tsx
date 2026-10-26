@@ -16,6 +16,7 @@ import { AutomataGraph } from './AutomataGraph';
 export function DfaGraph({
   dfa,
   kind = 'dfa',
+  showDeadState = false,
   highlight,
   activeStateId,
   highlightedStateIds,
@@ -25,7 +26,10 @@ export function DfaGraph({
   onStateClick,
   selectedStateId,
 }: DfaGraphProps) {
-  const graph = useMemo(() => (dfa ? adaptDfa(dfa) : null), [dfa]);
+  const graph = useMemo(
+    () => (dfa ? adaptDfa(dfa, { includeDeadState: showDeadState }) : null),
+    [dfa, showDeadState]
+  );
 
   return (
     <AutomataGraph

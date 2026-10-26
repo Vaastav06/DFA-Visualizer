@@ -220,4 +220,76 @@ describe('adaptDfa', () => {
     expect(adapted.edges[0].source).toBe('0');
     expect(adapted.edges[0].target).toBe('0');
   });
+
+  it('includes dead state (qd) with missing transitions and self-loop when includeDeadState is true', () => {
+    // DFA for (a|b)(c|d): 3 states, 4 alphabet symbols
+    const partialDfa: DFA = {
+      states: [
+        { id: 0, positions: [1, 2], isAccepting: false },
+        { id: 1, positions: [3, 4], isAccepting: false },
+        { id: 2, positions: [5], isAccepting: true },
+      ],
+      alphabet: ['a', 'b', 'c', 'd'],
+      startState: 0,
+      acceptStates: [2],
+      transitions: [
+        { from: 0, to: 1, symbol: 'a' },
+        { from: 0, to: 1, symbol: 'b' },
+        { from: 1, to: 2, symbol: 'c' },
+        { from: 1, to: 2, symbol: 'd' },
+      ],
+    };
+
+    const adaptedWithoutDeadState = adaptDfa(partialDfa);
+    expect(adaptedWithoutDeadState.nodes).toHaveLength(3);
+    expect(adaptedWithoutDeadState.edges).toHaveLength(4);
+
+    const adaptedWithDeadState = adaptDfa(partialDfa, { includeDeadState: true });
+    // Expect 3 original states + 1 dead state (qd)
+    expect(adaptedWithDeadState.nodes).toHaveLength(4);
+    const deadNode = adaptedWithDeadState.nodes.find((n) => n.id === '-1');
+    expect(deadNode).toBeDefined();
+    expect(deadNode?.data.label).toBe('qd');
+    expect(deadNode?.data.isDeadState).toBe(true);
+    expect(deadNode?.data.isAccepting).toBe(false);
+    expect(deadNode?.data.positions).toEqual([]);
+
+    // Outgoing edges to dead state:
+    // q0 missing c, d -> edge e0--1
+    const edge0Dead = adaptedWithDeadState.edges.find((e) => e.id === 'e0--1');
+    expect(edge0Dead).toBeDefined();
+    expect(edge0Dead?.data.label).toBe('c, d');
+    expect(edge0Dead?.data.symbols).toEqual(['c', 'd']);
+
+    // q1 missing a, b -> edge e1--1
+    const edge1Dead = adaptedWithDeadState.edges.find((e) => e.id === 'e1--1');
+    expect(edge1Dead).toBeDefined();
+    expect(edge1Dead?.data.label).toBe('a, b');
+    expect(edge1Dead?.data.symbols).toEqual(['a', 'b']);
+
+    // q2 missing a, b, c, d -> edge e2--1
+    const edge2Dead = adaptedWithDeadState.edges.find((e) => e.id === 'e2--1');
+    expect(edge2Dead).toBeDefined();
+    expect(edge2Dead?.data.label).toBe('a, b, c, d');
+
+    // Self loop on dead state for all alphabet symbols
+    const deadLoop = adaptedWithDeadState.edges.find((e) => e.id === 'e-1--1');
+    expect(deadLoop).toBeDefined();
+    expect(deadLoop?.data.label).toBe('a, b, c, d');
+    expect(deadLoop?.data.symbols).toEqual(['a', 'b', 'c', 'd']);
+  });
+
+  it('does not add a dead state if the DFA is already total', () => {
+    const totalDfa: DFA = {
+      states: [{ id: 0, positions: [1], isAccepting: true }],
+      alphabet: ['a'],
+      startState: 0,
+      acceptStates: [0],
+      transitions: [{ from: 0, to: 0, symbol: 'a' }],
+    };
+
+    const adapted = adaptDfa(totalDfa, { includeDeadState: true });
+    expect(adapted.nodes).toHaveLength(1);
+    expect(adapted.edges).toHaveLength(1);
+  });
 });

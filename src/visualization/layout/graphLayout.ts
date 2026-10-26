@@ -108,9 +108,14 @@ export function layoutAutomaton(
     layerMap.get(layer)!.push(state);
   }
 
-  // Sort each layer's states deterministically by state id
+  // Sort each layer's states deterministically by state id.
+  // Positive states sort ascending (q0, q1, ...); dead state (-1) sorts last (bottom).
   for (const layerStates of layerMap.values()) {
-    layerStates.sort((a, b) => a - b);
+    layerStates.sort((a, b) => {
+      if (a < 0) return 1;
+      if (b < 0) return -1;
+      return a - b;
+    });
   }
 
   // 5. Calculate coordinates

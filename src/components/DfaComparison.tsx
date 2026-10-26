@@ -20,6 +20,7 @@ interface DfaComparisonProps {
   onSelectMinState: (id: number | null) => void;
   selectedDirectStateId: number | null;
   onSelectDirectState: (id: number | null) => void;
+  showDeadState?: boolean;
 }
 
 export function DfaComparison({
@@ -29,6 +30,7 @@ export function DfaComparison({
   onSelectMinState,
   selectedDirectStateId,
   onSelectDirectState,
+  showDeadState = false,
 }: DfaComparisonProps) {
   const directStateCount = directDfa.states.length;
   const minStateCount = minimizedDfa.states.length;
@@ -93,6 +95,7 @@ export function DfaComparison({
             kind="dfa"
             selectedStateId={selectedDirectStateId}
             highlightedStateIds={correlatedDirectStateIds}
+            showDeadState={showDeadState}
             onStateClick={(id) => onSelectDirectState(id === selectedDirectStateId ? null : id)}
             height={340}
           />
@@ -103,6 +106,7 @@ export function DfaComparison({
             dfa={minimizedDfa}
             kind="minimized-dfa"
             selectedStateId={selectedMinStateId}
+            showDeadState={showDeadState}
             onStateClick={(id) => onSelectMinState(id === selectedMinStateId ? null : id)}
             height={340}
           />

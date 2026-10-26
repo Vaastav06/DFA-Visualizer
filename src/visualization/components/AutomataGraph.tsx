@@ -10,7 +10,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   Background,
-  MiniMap,
   ReactFlow,
   ReactFlowProvider,
   useReactFlow,
@@ -96,8 +95,6 @@ function AutomataGraphInner({
   // Drag/select overrides: controlled ReactFlow drops these changes unless we
   // persist them here and feed them back via the `nodes` prop.
   const [nodeOverrides, setNodeOverrides] = useState<Record<string, NodeOverride>>({});
-  const [showMiniMap, setShowMiniMap] = useState(false);
-  const handleToggleMiniMap = useCallback(() => setShowMiniMap((v) => !v), []);
   const graphKey = layoutKey(graph);
 
   // New layout/graph → drop manual positions so the deterministic layout applies.
@@ -310,14 +307,6 @@ function AutomataGraphInner({
             aria-label={`${kind.toUpperCase()} state diagram`}
           >
             <Background gap={20} size={1} color="var(--border)" />
-            {showMiniMap && (
-              <MiniMap
-                pannable
-                zoomable
-                ariaLabel="Automata minimap"
-                className="automata-graph__minimap"
-              />
-            )}
           </ReactFlow>
         ) : (
           <EmptyGraphState />
@@ -326,12 +315,7 @@ function AutomataGraphInner({
       </div>
       <figcaption className="automata-graph__footer">
         <GraphLegend kind={kind} />
-        <GraphControls
-          onFitView={handleFit}
-          onReset={handleReset}
-          onToggleMiniMap={handleToggleMiniMap}
-          isMiniMapVisible={showMiniMap}
-        />
+        <GraphControls filename={`${kind}-diagram`} onFitView={handleFit} onReset={handleReset} />
       </figcaption>
     </figure>
   );

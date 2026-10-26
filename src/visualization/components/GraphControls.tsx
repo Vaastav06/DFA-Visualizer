@@ -1,13 +1,14 @@
 /**
- * Zoom / pan / fit / reset controls for a graph.
+ * Zoom / pan / fit / reset / PNG export controls for a graph.
  *
  * OWNER: Person 2.
  * Wired to the React Flow instance (`useReactFlow`), with fallback to custom handlers.
  *
- * Required controls per docs/VISUALIZATION_SPEC.md: zoom in, zoom out, fit to
- * view, reset. Every control must be a real <button> with an accessible label.
+ * Controls: zoom in, zoom out, fit to view, reset, export PNG.
+ * Every control is an accessible <button> with keyboard support.
  */
 
+import React from 'react';
 import { useReactFlow } from '@xyflow/react';
 
 interface GraphControlsProps {
@@ -15,9 +16,8 @@ interface GraphControlsProps {
   onZoomOut?: () => void;
   onFitView?: () => void;
   onReset?: () => void;
-  onToggleMiniMap?: () => void;
-  isMiniMapVisible?: boolean;
-  onExportSvg?: () => void;
+  onExport?: () => void;
+  filename?: string;
 }
 
 export function GraphControls({
@@ -25,9 +25,8 @@ export function GraphControls({
   onZoomOut,
   onFitView,
   onReset,
-  onToggleMiniMap,
-  isMiniMapVisible = false,
-  onExportSvg,
+  onExport,
+  filename = 'automaton-diagram',
 }: GraphControlsProps) {
   const reactFlow = useReactFlow();
 
@@ -64,34 +63,39 @@ export function GraphControls({
     }
   };
 
-  const handleExport = () => {
-    if (onExportSvg) {
-      onExportSvg();
+  const handleExport = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (onExport) {
+      onExport();
       return;
     }
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
-    const svgElem = document.querySelector('.automata-graph .react-flow__viewport');
-    if (!svgElem || typeof URL.createObjectURL !== 'function') return;
+
+    // Find the enclosing graph figure and its React Flow canvas
+    const graphFigure = event.currentTarget.closest('.automata-graph');
+    const canvas = graphFigure?.querySelector('.react-flow') as HTMLElement | null;
+    if (!canvas) return;
 
     try {
-      const cloned = svgElem.cloneNode(true) as HTMLElement;
-      const svgWrapper = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      svgWrapper.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-      svgWrapper.setAttribute('width', '1000');
-      svgWrapper.setAttribute('height', '600');
-      svgWrapper.innerHTML = cloned.innerHTML;
-      const svgData = new XMLSerializer().serializeToString(svgWrapper);
-      const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
+      const { toPng } = await import('html-to-image');
+      const dataUrl = await toPng(canvas, {
+        backgroundColor: '#ffffff',
+        pixelRatio: 2, // High resolution (2x) for clear presentation & printing
+        filter: (node) => {
+          if (node instanceof HTMLElement && node.classList.contains('automata-graph__footer')) {
+            return false;
+          }
+          return true;
+        },
+      });
+
       const link = document.createElement('a');
-      link.href = url;
-      link.download = 'automaton-diagram.svg';
+      link.download = `${filename}.png`;
+      link.href = dataUrl;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } catch {
-      // In constrained environments where XMLSerializer or Blob is unsupported
+    } catch (error) {
+      console.warn('Failed to export diagram as PNG', error);
     }
   };
 
@@ -109,23 +113,13 @@ export function GraphControls({
       <button type="button" onClick={handleReset} aria-label="Reset graph view">
         Reset
       </button>
-      {onToggleMiniMap && (
-        <button
-          type="button"
-          onClick={onToggleMiniMap}
-          aria-label={isMiniMapVisible ? 'Hide minimap' : 'Show minimap'}
-          title="Toggle MiniMap"
-        >
-          {isMiniMapVisible ? 'Map ✓' : 'Map'}
-        </button>
-      )}
       <button
         type="button"
         onClick={handleExport}
-        aria-label="Export diagram as SVG"
-        title="Export SVG diagram"
+        aria-label="Export diagram as PNG"
+        title="Export as high-resolution PNG image"
       >
-        Export
+        Export PNG
       </button>
     </div>
   );

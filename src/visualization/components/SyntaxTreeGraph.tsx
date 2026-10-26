@@ -8,7 +8,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Background,
-  MiniMap,
   ReactFlow,
   ReactFlowProvider,
   type Edge,
@@ -44,9 +43,6 @@ function SyntaxTreeGraphInner({
 
   const adapted = useMemo(() => adaptSyntaxTree(tree), [tree]);
   const layout = useMemo(() => layoutSyntaxTree(tree), [tree]);
-
-  const [showMiniMap, setShowMiniMap] = useState(false);
-  const handleToggleMiniMap = useCallback(() => setShowMiniMap((v) => !v), []);
 
   // Controlled ReactFlow needs position/select changes fed back via `nodes`,
   // otherwise drag and selection events are discarded.
@@ -154,14 +150,6 @@ function SyntaxTreeGraphInner({
             aria-label="Syntax tree canvas"
           >
             <Background gap={20} size={1} color="var(--border)" />
-            {showMiniMap && (
-              <MiniMap
-                pannable
-                zoomable
-                ariaLabel="Syntax tree minimap"
-                className="automata-graph__minimap"
-              />
-            )}
           </ReactFlow>
         ) : (
           <EmptyGraphState message="No syntax tree available yet. Enter a regular expression to begin." />
@@ -169,7 +157,7 @@ function SyntaxTreeGraphInner({
       </div>
       <figcaption className="automata-graph__footer">
         <GraphLegend kind="syntax-tree" />
-        <GraphControls onToggleMiniMap={handleToggleMiniMap} isMiniMapVisible={showMiniMap} />
+        <GraphControls filename="syntax-tree-diagram" />
       </figcaption>
     </figure>
   );

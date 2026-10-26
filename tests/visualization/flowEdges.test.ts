@@ -12,6 +12,7 @@ import { buildFlowEdges, routeGraph } from '../../src/visualization/adapters/flo
 import { layoutAutomaton } from '../../src/visualization/layout/graphLayout';
 import { MOCK_DFA } from '../fixtures/mockAutomata';
 import type { DFA } from '../../src/compiler/types';
+import { GRAPH_COLORS } from '../../src/visualization/graphColors';
 
 function prepare(dfa: DFA) {
   const graph = adaptDfa(dfa);
@@ -62,7 +63,7 @@ describe('buildFlowEdges', () => {
     expect(highlighted[0].target).toBe(String(back.to));
     expect(highlighted[0].data!.symbols).toEqual([back.symbol]);
     expect(highlighted[0].zIndex).toBe(1);
-    expect(highlighted[0].markerEnd).toMatchObject({ color: '#b3720a' });
+    expect(highlighted[0].markerEnd).toMatchObject({ color: GRAPH_COLORS.edgeHighlight });
 
     // Highlighting never changes geometry.
     for (let i = 0; i < lit.length; i += 1) {

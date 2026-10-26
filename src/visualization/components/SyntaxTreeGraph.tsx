@@ -26,6 +26,7 @@ import { GraphLegend } from './GraphLegend';
 
 import '@xyflow/react/dist/style.css';
 import '../AutomataGraph.css';
+import { GRAPH_COLORS } from '../graphColors';
 
 const treeNodeTypes = {
   treeNode: SyntaxTreeNode,
@@ -90,7 +91,7 @@ function SyntaxTreeGraphInner({
       source: edge.source,
       target: edge.target,
       type: 'default',
-      style: { stroke: '#334155', strokeWidth: 2 },
+      style: { stroke: GRAPH_COLORS.edge, strokeWidth: 2 },
     }));
   }, [hasContent, adapted.edges]);
 

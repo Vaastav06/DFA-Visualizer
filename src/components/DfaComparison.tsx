@@ -12,6 +12,7 @@ import { useMemo } from 'react';
 import type { DFA } from '../compiler';
 import { formatStateId } from '../hooks/useCompiler';
 import { DfaGraph } from '../visualization';
+import { mapDirectToMinimized } from './dfaEquivalence';
 
 interface DfaComparisonProps {
   directDfa: DFA;
@@ -40,19 +41,15 @@ export function DfaComparison({
 
   // Compute equivalence partitions: which direct DFA states map to which minimized DFA state
   const equivalencePartitions = useMemo(() => {
-    return minimizedDfa.states.map((minState) => {
-      const minPosSet = new Set(minState.positions);
-      const members = directDfa.states.filter((directState) => {
-        if (directState.positions.length === 0) return false;
-        return directState.positions.every((p) => minPosSet.has(p));
-      });
-      return {
-        minId: minState.id,
-        isAccepting: minState.isAccepting,
-        positions: minState.positions,
-        directMemberIds: members.map((s) => s.id),
-      };
-    });
+    const minStateOf = mapDirectToMinimized(directDfa, minimizedDfa);
+    return minimizedDfa.states.map((minState) => ({
+      minId: minState.id,
+      isAccepting: minState.isAccepting,
+      positions: minState.positions,
+      directMemberIds: directDfa.states
+        .filter((directState) => minStateOf.get(directState.id) === minState.id)
+        .map((s) => s.id),
+    }));
   }, [directDfa, minimizedDfa]);
 
   // Which direct states correspond to the currently selected minimized state

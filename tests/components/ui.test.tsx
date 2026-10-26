@@ -3,7 +3,7 @@
  */
 
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { RegexInput } from '../../src/components/RegexInput';
 import { ErrorDisplay } from '../../src/components/ErrorDisplay';
@@ -14,13 +14,14 @@ import { TokenList } from '../../src/components/TokenList';
 import { TransitionTable } from '../../src/components/TransitionTable';
 import { DfaMapping } from '../../src/components/DfaMapping';
 import { DfaComparison } from '../../src/components/DfaComparison';
+import { mapDirectToMinimized } from '../../src/components/dfaEquivalence';
 import { StringSimulator } from '../../src/components/StringSimulator';
 import { EmptyState } from '../../src/components/EmptyState';
 import { LoadingState } from '../../src/components/LoadingState';
 import { AlgorithmExplanation } from '../../src/components/AlgorithmExplanation';
 import { EXAMPLE_EXPRESSIONS } from '../../src/data/examples';
 import { MOCK_DFA, MOCK_MINIMIZED_DFA } from '../fixtures/mockAutomata';
-import { PIPELINE_STEPS, type DFA } from '../../src/compiler';
+import { PIPELINE_STEPS, compileRegex, type DFA } from '../../src/compiler';
 
 describe('<RegexInput />', () => {
   it('submits the current expression on button click and Enter key', async () => {
@@ -206,6 +207,49 @@ describe('<DfaComparison />', () => {
       await userEvent.click(row);
       expect(onSelectMin).toHaveBeenCalled();
     }
+  });
+});
+
+describe('mapDirectToMinimized', () => {
+  // Each of these was mis-mapped when states were matched by position-set containment.
+  it.each([
+    ['(a|b)*abb', [[0], [1], [2], [3]]],
+    ['(0|1)*00(0|1)*', [[0], [1], [2, 3]]],
+    ['a*b*', [[0], [1]]],
+    ['(a|b)*b(a|b)*', [[0], [1]]],
+    ['(a|b)*a|(a|b)*b', [[0], [1]]],
+  ])('maps every direct state of %s to exactly one minimized state', (regex, expected) => {
+    const { dfa, minimizedDfa } = compileRegex(regex);
+    const minStateOf = mapDirectToMinimized(dfa, minimizedDfa);
+
+    expect(minStateOf.size).toBe(dfa.states.length);
+    const groups = minimizedDfa.states.map((m) =>
+      dfa.states.filter((d) => minStateOf.get(d.id) === m.id).map((d) => d.id)
+    );
+    expect(groups).toEqual(expected);
+  });
+
+  it('shows the lockstep mapping in the equivalence table', () => {
+    const { dfa, minimizedDfa } = compileRegex('(a|b)*abb');
+    render(
+      <DfaComparison
+        directDfa={dfa}
+        minimizedDfa={minimizedDfa}
+        selectedMinStateId={null}
+        onSelectMinState={vi.fn()}
+        selectedDirectStateId={null}
+        onSelectDirectState={vi.fn()}
+      />
+    );
+
+    const table = screen.getByRole('table', { name: /state equivalence mapping/i });
+    const rows = within(table).getAllByRole('row').slice(1);
+    expect(rows.map((row) => row.querySelectorAll('td')[0].textContent)).toEqual([
+      'q0',
+      'q1',
+      'q2',
+      'q3',
+    ]);
   });
 });
 

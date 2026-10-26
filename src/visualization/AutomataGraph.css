@@ -365,6 +365,13 @@
   box-shadow: 0 0 0 2px var(--warning-subtle);
 }
 
+.transition-edge-pulse {
+  fill: var(--warning, #f59e0b);
+  stroke: var(--surface, #ffffff);
+  stroke-width: 1.5px;
+  filter: drop-shadow(0 0 4px var(--warning, #f59e0b));
+}
+
 /* ==========================================================================
    Graph Controls
    ========================================================================== */
@@ -398,6 +405,13 @@
 .graph-controls button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
+}
+
+.automata-graph__minimap {
+  background: var(--surface) !important;
+  border: 1px solid var(--border-strong) !important;
+  border-radius: var(--radius-md) !important;
+  box-shadow: var(--shadow-md) !important;
 }
 
 /* ==========================================================================

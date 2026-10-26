@@ -26,11 +26,19 @@ describe('<RegexInput />', () => {
     const onSubmit = vi.fn();
     render(<RegexInput value="a|b" onSubmit={onSubmit} />);
 
-    await userEvent.click(screen.getByRole('button', { name: /convert/i }));
+    await userEvent.click(screen.getByRole('button', { name: /create|convert/i }));
     expect(onSubmit).toHaveBeenCalledWith('a|b');
 
     await userEvent.type(screen.getByLabelText(/regular expression/i), '{Enter}');
     expect(onSubmit).toHaveBeenCalledTimes(2);
+  });
+
+  it('auto-fills default placeholder (a|b)*abb when submitted empty', async () => {
+    const onSubmit = vi.fn();
+    render(<RegexInput value="" onSubmit={onSubmit} />);
+
+    await userEvent.click(screen.getByRole('button', { name: /create|convert/i }));
+    expect(onSubmit).toHaveBeenCalledWith('(a|b)*abb');
   });
 
   it('links aria-describedby and aria-invalid when hasError is true', () => {
@@ -134,12 +142,30 @@ describe('<TransitionTable /> and <DfaMapping />', () => {
     expect(screen.getAllByText('—').length).toBeGreaterThan(0);
   });
 
+  it('supports row selection via onSelectState callback in TransitionTable', async () => {
+    const onSelect = vi.fn();
+    render(<TransitionTable dfa={MOCK_DFA} onSelectState={onSelect} selectedStateId={1} />);
+    const q0Row = screen.getByText(/q0/).closest('tr');
+    expect(q0Row).toBeInTheDocument();
+    if (q0Row) await userEvent.click(q0Row);
+    expect(onSelect).toHaveBeenCalledWith(0);
+  });
+
   it('renders DFA state mapping with position sets and acceptance', () => {
     render(<DfaMapping dfa={MOCK_DFA} />);
     expect(screen.getByText('{0, 1, 3}')).toBeInTheDocument();
     expect(screen.getByText('{2, 5}')).toBeInTheDocument();
     expect(screen.getAllByText('accepting')).toHaveLength(2);
     expect(screen.getByText('non-accepting')).toBeInTheDocument();
+  });
+
+  it('supports row selection via onSelectState callback in DfaMapping', async () => {
+    const onSelect = vi.fn();
+    render(<DfaMapping dfa={MOCK_DFA} onSelectState={onSelect} selectedStateId={0} />);
+    const q1Row = screen.getByText('q1').closest('tr');
+    expect(q1Row).toBeInTheDocument();
+    if (q1Row) await userEvent.click(q1Row);
+    expect(onSelect).toHaveBeenCalledWith(1);
   });
 });
 
@@ -152,6 +178,11 @@ describe('<StringSimulator />', () => {
 
     expect(screen.getByRole('status')).toHaveTextContent(/ACCEPTED/i);
     expect(screen.getByText(/Step 1/i)).toBeInTheDocument();
+
+    // Toggle Play/Pause animation control
+    const playButton = screen.getByRole('button', { name: /play simulation animation/i });
+    expect(playButton).toBeInTheDocument();
+    await userEvent.click(playButton);
 
     // Reset simulation
     await userEvent.click(screen.getByRole('button', { name: /reset simulation/i }));

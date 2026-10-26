@@ -6,52 +6,82 @@
  * telling the team.
  *
  * Semantic names only: `--accent`, not `--blue-500`.
+ *
+ * Visual style: "Cyberpunk" — near-black ground, electric green signals, hard
+ * white headings and monospaced records. The `--dp-*` tokens are the
+ * authoritative design values; the semantic tokens below map onto them. The
+ * style is dark by design, so there is one palette for every colour scheme.
  */
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
+
+  /* Authoritative design tokens */
+  --dp-color-ground: #020303;
+  --dp-color-accent: #38ff8e;
+  --dp-color-interference: #ff65d8;
+  --dp-color-registration: #65f8ff;
+  --dp-color-ink: #f8fffa;
+  --dp-color-ink-body: #d3dbd5;
+  --dp-color-ink-muted: #c2cbc5;
+  --dp-color-plate: #090e0b;
+  --dp-color-line: #304c3b;
+  --dp-color-control-line: #659579;
+  --dp-typography-display: 'Cyberpunk Plex Sans', 'IBM Plex Sans', system-ui, sans-serif;
+  --dp-typography-mono: 'Cyberpunk Plex Mono', 'IBM Plex Mono', Consolas, monospace;
+  --dp-typography-small: 14px;
+  --dp-typography-label: 12px;
+  --dp-typography-metadata: 11px;
+  --dp-spacing-gutter: clamp(22px, 4.5cqi, 72px);
+  --dp-spacing-column-gap: 50px;
+  --dp-radius-control: 0;
+  --dp-border-hairline: 1px;
+  --dp-motion-interaction: 0s;
 
   /* Surfaces */
-  --background: #f6f7f9;
-  --surface: #ffffff;
-  --surface-elevated: #ffffff;
-  --surface-sunken: #eef0f4;
+  --background: var(--dp-color-ground);
+  --surface: var(--dp-color-plate);
+  --surface-elevated: #0e1611;
+  --surface-sunken: #050806;
 
   /* Text */
-  --text-primary: #1a1d23;
-  --text-secondary: #5a6170;
-  --text-muted: #8b91a0;
-  --text-inverse: #ffffff;
+  --text-primary: var(--dp-color-ink);
+  --text-secondary: var(--dp-color-ink-body);
+  --text-muted: var(--dp-color-ink-muted);
+  --text-inverse: var(--dp-color-ground);
 
   /* Lines */
-  --border: #d9dde5;
-  --border-strong: #b9c0cc;
+  --border: var(--dp-color-line);
+  --border-strong: var(--dp-color-control-line);
 
   /* Intent */
-  --accent: #2f6feb;
-  --accent-hover: #2559c4;
-  --accent-subtle: #e4edfd;
-  --danger: #c8372d;
-  --danger-subtle: #fbe9e7;
-  --success: #1f8a4c;
-  --success-subtle: #e6f4ec;
-  --warning: #b3720a;
-  --warning-subtle: #fdf1dc;
+  --accent: var(--dp-color-accent);
+  --accent-hover: #7dffb5;
+  --accent-subtle: #0b2a18;
+  --danger: var(--dp-color-interference);
+  --danger-subtle: #2a0a22;
+  --error: var(--danger);
+  --error-subtle: var(--danger-subtle);
+  --success: var(--dp-color-accent);
+  --success-subtle: #0b2a18;
+  --warning: var(--dp-color-registration);
+  --warning-subtle: #082a2c;
 
   /* Automaton semantics — used by the graphs AND the tables, so a start state
-     looks the same everywhere in the app. */
+     looks the same everywhere in the app. Edge colours are mirrored in
+     src/visualization/graphColors.ts for SVG markers and image export. */
   --state-fill: var(--surface);
   --state-border: var(--border-strong);
-  --state-start: var(--success);
+  --state-start: var(--dp-color-ink);
   --state-accepting: var(--accent);
   --state-highlight: var(--warning);
-  --edge: #77808f;
-  --edge-epsilon: #9aa2b1;
+  --edge: var(--dp-color-ink-muted);
+  --edge-epsilon: var(--dp-color-control-line);
   --edge-highlight: var(--warning);
 
   /* Typography */
-  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Cascadia Code', Consolas, 'Courier New', monospace;
+  --font-sans: var(--dp-typography-display);
+  --font-mono: var(--dp-typography-mono);
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-base: 1rem;
@@ -64,54 +94,24 @@
   --space-2: 0.5rem;
   --space-3: 0.75rem;
   --space-4: 1rem;
+  --space-5: 1.25rem;
   --space-6: 1.5rem;
   --space-8: 2rem;
   --space-12: 3rem;
 
-  /* Shape */
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-full: 999px;
-  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
-  --shadow-md: 0 4px 12px rgba(16, 24, 40, 0.08);
+  /* Shape — square geometry throughout. DFA state circles keep their own
+     50% radius because the circle is part of automaton notation. */
+  --radius-sm: var(--dp-radius-control);
+  --radius-md: var(--dp-radius-control);
+  --radius-lg: var(--dp-radius-control);
+  --radius-full: var(--dp-radius-control);
+  --clip-corner: 8px;
+  --shadow-sm: none;
+  --shadow-md: none;
+  --signal-glow: 0 0 12px rgba(56, 255, 142, 0.35);
 
   /* Layout */
-  --content-max-width: 1200px;
+  --content-max-width: 1280px;
   --graph-height: 420px;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-
-    --background: #14171c;
-    --surface: #1b1f26;
-    --surface-elevated: #232831;
-    --surface-sunken: #11141a;
-
-    --text-primary: #e8eaee;
-    --text-secondary: #a6adbb;
-    --text-muted: #79818f;
-    --text-inverse: #14171c;
-
-    --border: #2e343f;
-    --border-strong: #454d5b;
-
-    --accent: #6f9bf5;
-    --accent-hover: #89aefa;
-    --accent-subtle: #1d2740;
-    --danger: #f08b81;
-    --danger-subtle: #3a211e;
-    --success: #64c48c;
-    --success-subtle: #17301f;
-    --warning: #e2b063;
-    --warning-subtle: #332614;
-
-    --edge: #8d96a5;
-    --edge-epsilon: #6b7382;
-
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45);
-  }
+  --rail-offset: 28px;
 }

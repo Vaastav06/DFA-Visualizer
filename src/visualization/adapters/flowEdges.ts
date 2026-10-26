@@ -66,11 +66,22 @@ export function buildFlowEdges(
     const sourceHandle = isSelfLoop ? 'top' : 'right';
     const targetHandle = isSelfLoop ? 'top-target' : 'left';
 
+    // Use explicit hex colors so SVG markerEnd url(#...) does not include
+    // unescaped parentheses from CSS vars (e.g. var(--edge)), ensuring markers
+    // render properly in browser and export crisply to PNG/JPEG.
+    const isDark =
+      typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches;
     const markerColor = isHighlighted
-      ? 'var(--edge-highlight)'
+      ? isDark
+        ? '#e2b063'
+        : '#b3720a'
       : edge.data.isEpsilon
-        ? 'var(--edge-epsilon)'
-        : 'var(--edge)';
+        ? isDark
+          ? '#6b7382'
+          : '#9aa2b1'
+        : isDark
+          ? '#94a3b8'
+          : '#334155';
 
     return {
       id: edge.id,
@@ -89,8 +100,8 @@ export function buildFlowEdges(
       markerEnd: {
         type: MarkerType.ArrowClosed,
         color: markerColor,
-        width: 14,
-        height: 14,
+        width: 18,
+        height: 18,
       },
     };
   });

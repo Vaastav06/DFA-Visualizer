@@ -1,10 +1,10 @@
 /**
- * Zoom / pan / fit / reset / PNG export controls for a graph.
+ * Zoom / pan / fit / reset / image export controls for a graph.
  *
  * OWNER: Person 2.
  * Wired to the React Flow instance (`useReactFlow`), with fallback to custom handlers.
  *
- * Controls: zoom in, zoom out, fit to view, reset, export PNG.
+ * Controls: zoom in, zoom out, fit to view, reset, export PNG and JPEG.
  * Every control is an accessible <button> with keyboard support.
  */
 
@@ -16,7 +16,7 @@ interface GraphControlsProps {
   onZoomOut?: () => void;
   onFitView?: () => void;
   onReset?: () => void;
-  onExport?: () => void;
+  onExport?: (format: 'png' | 'jpeg') => void;
   filename?: string;
 }
 
@@ -63,9 +63,12 @@ export function GraphControls({
     }
   };
 
-  const handleExport = async (event: React.MouseEvent<HTMLButtonElement>) => {
+  const exportImage = async (
+    format: 'png' | 'jpeg',
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
     if (onExport) {
-      onExport();
+      onExport(format);
       return;
     }
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
@@ -76,12 +79,32 @@ export function GraphControls({
     if (!canvas) return;
 
     try {
-      const { toPng } = await import('html-to-image');
-      const dataUrl = await toPng(canvas, {
+      // Normalize markers: ensure all SVG marker elements have concrete fill and stroke colors
+      const markers = canvas.querySelectorAll('marker');
+      markers.forEach((marker) => {
+        const shape = marker.querySelector('polyline, path, polygon');
+        if (shape) {
+          const markerId = marker.id || '';
+          const shapeColor =
+            markerId.includes('highlight') || markerId.includes('warning') ? '#b3720a' : '#334155';
+          shape.setAttribute('fill', shapeColor);
+          shape.setAttribute('stroke', shapeColor);
+        }
+      });
+
+      const { toPng, toJpeg } = await import('html-to-image');
+      const exportFn = format === 'jpeg' ? toJpeg : toPng;
+      const dataUrl = await exportFn(canvas, {
         backgroundColor: '#ffffff',
-        pixelRatio: 2, // High resolution (2x) for clear presentation & printing
+        pixelRatio: 3, // 3x ultra-sharp resolution for crisp vector lines and text
+        quality: 0.98,
         filter: (node) => {
-          if (node instanceof HTMLElement && node.classList.contains('automata-graph__footer')) {
+          if (
+            node instanceof HTMLElement &&
+            (node.classList.contains('automata-graph__footer') ||
+              node.classList.contains('react-flow__panel') ||
+              node.classList.contains('react-flow__attribution'))
+          ) {
             return false;
           }
           return true;
@@ -89,13 +112,13 @@ export function GraphControls({
       });
 
       const link = document.createElement('a');
-      link.download = `${filename}.png`;
+      link.download = `${filename}.${format}`;
       link.href = dataUrl;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     } catch (error) {
-      console.warn('Failed to export diagram as PNG', error);
+      console.warn(`Failed to export diagram as ${format.toUpperCase()}`, error);
     }
   };
 
@@ -115,11 +138,19 @@ export function GraphControls({
       </button>
       <button
         type="button"
-        onClick={handleExport}
+        onClick={(e) => exportImage('png', e)}
         aria-label="Export diagram as PNG"
-        title="Export as high-resolution PNG image"
+        title="Export as PNG image"
       >
-        Export PNG
+        PNG
+      </button>
+      <button
+        type="button"
+        onClick={(e) => exportImage('jpeg', e)}
+        aria-label="Export diagram as JPEG"
+        title="Export as JPEG image"
+      >
+        JPEG
       </button>
     </div>
   );

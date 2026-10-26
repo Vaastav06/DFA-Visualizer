@@ -90,7 +90,7 @@ function SyntaxTreeGraphInner({
       source: edge.source,
       target: edge.target,
       type: 'default',
-      style: { stroke: 'var(--edge)', strokeWidth: 2 },
+      style: { stroke: '#334155', strokeWidth: 2 },
     }));
   }, [hasContent, adapted.edges]);
 

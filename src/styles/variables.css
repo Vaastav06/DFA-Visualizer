@@ -7,27 +7,19 @@
  *
  * Semantic names only: `--accent`, not `--blue-500`.
  *
- * Palette: "Paper Blue" — a low-glare light theme. Warm off-white paper, ink
- * blue for accepting states and selection, burnt orange for the active
- * simulation step, brick red for errors. Every text colour meets WCAG AA
- * (4.5:1) on the surfaces it is used on, and control borders meet 3:1.
- * The `--dp-*` tokens hold the raw values; semantic tokens map onto them.
+ * Palette: "Frontier Outlaw" — a warm, low-glare dark theme: charred timber,
+ * aged leather, outlaw crimson, campfire brass and sagebrush green.
+ *
+ * Fills, borders and graph strokes use the palette values directly. Where a
+ * palette colour is too dark to read as text on these surfaces, a lighter
+ * `*-text` shade of the same hue is used instead, so all text meets WCAG AA
+ * (4.5:1). Edge colours are mirrored in src/visualization/graphColors.ts.
  */
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 
-  /* Raw palette */
-  --dp-color-ground: #f2eee5;
-  --dp-color-accent: #2f5fa8;
-  --dp-color-highlight: #9a5b00;
-  --dp-color-danger: #b4413b;
-  --dp-color-ink: #2b2a26;
-  --dp-color-ink-body: #45443e;
-  --dp-color-ink-muted: #6b6a62;
-  --dp-color-plate: #fbf9f4;
-  --dp-color-line: #ddd7ca;
-  --dp-color-control-line: #8a8475;
+  /* Fonts and fixed design values */
   --dp-typography-display: 'IBM Plex Sans', system-ui, sans-serif;
   --dp-typography-mono: 'IBM Plex Mono', Consolas, monospace;
   --dp-typography-small: 14px;
@@ -40,45 +32,55 @@
   --dp-motion-interaction: 0s;
 
   /* Surfaces */
-  --background: var(--dp-color-ground);
-  --surface: var(--dp-color-plate);
-  --surface-elevated: #ffffff;
-  --surface-sunken: #f5f2eb;
+  --canvas: #151210; /* Charred Timber */
+  --surface-base: var(--canvas);
+  --background: var(--canvas);
+  --surface: #211b17; /* Aged Leather */
+  --surface-elevated: #26201b; /* Dark leather badge */
+  --surface-sunken: #1a1613; /* Dust Valley */
 
   /* Text */
-  --text-primary: var(--dp-color-ink);
-  --text-secondary: var(--dp-color-ink-body);
-  --text-muted: var(--dp-color-ink-muted);
-  --text-inverse: #ffffff;
+  --text-primary: #eae1d2; /* Weathered Parchment */
+  --text-secondary: #9e8e7f; /* Dust Trail */
+  --text-muted: #9e8e7f;
+  --text-inverse: #eae1d2; /* Label on crimson buttons */
 
   /* Lines */
-  --border: var(--dp-color-line);
-  --border-strong: var(--dp-color-control-line);
+  --border: #3d332c; /* Weathered Iron */
+  --border-strong: #52453c; /* Iron Rim */
 
   /* Intent */
-  --accent: var(--dp-color-accent);
-  --accent-hover: #244b86;
-  --accent-subtle: #e5ecf6;
-  --danger: var(--dp-color-danger);
-  --danger-subtle: #f7e4e1;
-  --error: var(--danger);
-  --error-subtle: var(--danger-subtle);
-  --success: var(--dp-color-accent);
-  --success-subtle: var(--accent-subtle);
-  --warning: var(--dp-color-highlight);
-  --warning-subtle: #f6ead6;
+  --accent: #b32622; /* Outlaw Crimson */
+  --accent-hover: #cc3732; /* Campfire Ember */
+  --accent-subtle: #38201a; /* Smoldering Crimson */
+  --accent-text: #e8736a; /* Readable crimson for text */
+  --focus-ring: #e8736a;
+  --success: #5a7d5a; /* Sagebrush Green */
+  --success-subtle: #1f2a1f;
+  --success-text: #8fb08c;
+  --warning: #d48c38; /* Warm Whiskey / Brass */
+  --warning-subtle: #3a2a19;
+  --error: #8f2924; /* Dried Rust */
+  --error-subtle: #381c1a;
+  --error-text: #e5857b;
+  --danger: var(--error);
+  --danger-subtle: var(--error-subtle);
+  --danger-text: var(--error-text);
 
   /* Automaton semantics — used by the graphs AND the tables, so a start state
-     looks the same everywhere in the app. Edge colours are mirrored in
-     src/visualization/graphColors.ts for SVG markers and image export. */
-  --state-fill: var(--surface);
+     looks the same everywhere in the app. */
+  --state-fill: var(--surface-elevated);
   --state-border: var(--border-strong);
-  --state-start: var(--dp-color-ink);
-  --state-accepting: var(--accent);
+  --state-label: var(--text-primary);
+  --state-start: var(--success);
+  --state-accepting: var(--success);
   --state-highlight: var(--warning);
-  --edge: #5c5a52;
-  --edge-epsilon: var(--dp-color-control-line);
+  --state-dead: var(--error);
+  --state-dead-fill: #231716; /* Faint mahogany */
+  --edge: #6e5e52; /* Rawhide Twine */
+  --edge-epsilon: var(--success);
   --edge-highlight: var(--warning);
+  --edge-pulse: #e09842; /* Golden campfire flame */
 
   /* Typography */
   --font-sans: var(--dp-typography-display);

@@ -7,28 +7,29 @@
  *
  * Semantic names only: `--accent`, not `--blue-500`.
  *
- * Visual style: "Cyberpunk" — near-black ground, electric green signals, hard
- * white headings and monospaced records. The `--dp-*` tokens are the
- * authoritative design values; the semantic tokens below map onto them. The
- * style is dark by design, so there is one palette for every colour scheme.
+ * Palette: "Paper Blue" — a low-glare light theme. Warm off-white paper, ink
+ * blue for accepting states and selection, burnt orange for the active
+ * simulation step, brick red for errors. Every text colour meets WCAG AA
+ * (4.5:1) on the surfaces it is used on, and control borders meet 3:1.
+ * The `--dp-*` tokens hold the raw values; semantic tokens map onto them.
  */
 
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
-  /* Authoritative design tokens */
-  --dp-color-ground: #020303;
-  --dp-color-accent: #38ff8e;
-  --dp-color-interference: #ff65d8;
-  --dp-color-registration: #65f8ff;
-  --dp-color-ink: #f8fffa;
-  --dp-color-ink-body: #d3dbd5;
-  --dp-color-ink-muted: #c2cbc5;
-  --dp-color-plate: #090e0b;
-  --dp-color-line: #304c3b;
-  --dp-color-control-line: #659579;
-  --dp-typography-display: 'Cyberpunk Plex Sans', 'IBM Plex Sans', system-ui, sans-serif;
-  --dp-typography-mono: 'Cyberpunk Plex Mono', 'IBM Plex Mono', Consolas, monospace;
+  /* Raw palette */
+  --dp-color-ground: #f2eee5;
+  --dp-color-accent: #2f5fa8;
+  --dp-color-highlight: #9a5b00;
+  --dp-color-danger: #b4413b;
+  --dp-color-ink: #2b2a26;
+  --dp-color-ink-body: #45443e;
+  --dp-color-ink-muted: #6b6a62;
+  --dp-color-plate: #fbf9f4;
+  --dp-color-line: #ddd7ca;
+  --dp-color-control-line: #8a8475;
+  --dp-typography-display: 'IBM Plex Sans', system-ui, sans-serif;
+  --dp-typography-mono: 'IBM Plex Mono', Consolas, monospace;
   --dp-typography-small: 14px;
   --dp-typography-label: 12px;
   --dp-typography-metadata: 11px;
@@ -41,14 +42,14 @@
   /* Surfaces */
   --background: var(--dp-color-ground);
   --surface: var(--dp-color-plate);
-  --surface-elevated: #0e1611;
-  --surface-sunken: #050806;
+  --surface-elevated: #ffffff;
+  --surface-sunken: #f5f2eb;
 
   /* Text */
   --text-primary: var(--dp-color-ink);
   --text-secondary: var(--dp-color-ink-body);
   --text-muted: var(--dp-color-ink-muted);
-  --text-inverse: var(--dp-color-ground);
+  --text-inverse: #ffffff;
 
   /* Lines */
   --border: var(--dp-color-line);
@@ -56,16 +57,16 @@
 
   /* Intent */
   --accent: var(--dp-color-accent);
-  --accent-hover: #7dffb5;
-  --accent-subtle: #0b2a18;
-  --danger: var(--dp-color-interference);
-  --danger-subtle: #2a0a22;
+  --accent-hover: #244b86;
+  --accent-subtle: #e5ecf6;
+  --danger: var(--dp-color-danger);
+  --danger-subtle: #f7e4e1;
   --error: var(--danger);
   --error-subtle: var(--danger-subtle);
   --success: var(--dp-color-accent);
-  --success-subtle: #0b2a18;
-  --warning: var(--dp-color-registration);
-  --warning-subtle: #082a2c;
+  --success-subtle: var(--accent-subtle);
+  --warning: var(--dp-color-highlight);
+  --warning-subtle: #f6ead6;
 
   /* Automaton semantics — used by the graphs AND the tables, so a start state
      looks the same everywhere in the app. Edge colours are mirrored in
@@ -75,7 +76,7 @@
   --state-start: var(--dp-color-ink);
   --state-accepting: var(--accent);
   --state-highlight: var(--warning);
-  --edge: var(--dp-color-ink-muted);
+  --edge: #5c5a52;
   --edge-epsilon: var(--dp-color-control-line);
   --edge-highlight: var(--warning);
 
@@ -108,7 +109,7 @@
   --clip-corner: 8px;
   --shadow-sm: none;
   --shadow-md: none;
-  --signal-glow: 0 0 12px rgba(56, 255, 142, 0.35);
+  --signal-glow: none;
 
   /* Layout */
   --content-max-width: 1280px;

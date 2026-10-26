@@ -62,7 +62,7 @@ describe('buildFlowEdges', () => {
     expect(highlighted[0].target).toBe(String(back.to));
     expect(highlighted[0].data!.symbols).toEqual([back.symbol]);
     expect(highlighted[0].zIndex).toBe(1);
-    expect(highlighted[0].markerEnd).toMatchObject({ color: 'var(--edge-highlight)' });
+    expect(highlighted[0].markerEnd).toMatchObject({ color: '#b3720a' });
 
     // Highlighting never changes geometry.
     for (let i = 0; i < lit.length; i += 1) {

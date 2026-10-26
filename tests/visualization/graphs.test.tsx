@@ -61,10 +61,11 @@ describe('<NfaGraph />', () => {
     }
   });
 
-  it('renders extended graph controls including export PNG button', () => {
+  it('renders extended graph controls including export PNG and JPEG buttons', () => {
     render(<DfaGraph dfa={MOCK_DFA} />);
 
     expect(screen.getByRole('button', { name: /export diagram as png/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /export diagram as jpeg/i })).toBeInTheDocument();
   });
 
   it('renders start state indicator and accepting state indicator on NFA nodes', () => {

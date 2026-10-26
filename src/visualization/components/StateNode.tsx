@@ -121,7 +121,7 @@ export function StateNode({ data, selected }: NodeProps<StateNodeType>) {
             <path
               d="M 2 8 L 22 8 M 16 3 L 22 8 L 16 13"
               fill="none"
-              stroke="currentColor"
+              stroke="#1f8a4c"
               strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"

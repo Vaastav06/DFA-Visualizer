@@ -73,12 +73,30 @@ export function TransitionEdge({
     .filter(Boolean)
     .join(' ');
 
+  const isDark =
+    typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches;
+  const strokeColor = isHighlighted
+    ? isDark
+      ? '#e2b063'
+      : '#b3720a'
+    : isEpsilon
+      ? isDark
+        ? '#6b7382'
+        : '#9aa2b1'
+      : isDark
+        ? '#94a3b8'
+        : '#334155';
+
   return (
     <>
       <BaseEdge
         id={id}
         path={edgePath}
-        style={style}
+        style={{
+          stroke: strokeColor,
+          strokeWidth: isHighlighted ? 3 : 2,
+          ...style,
+        }}
         markerEnd={markerEnd}
         className={pathClassName}
         interactionWidth={14}

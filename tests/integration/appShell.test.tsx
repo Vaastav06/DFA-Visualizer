@@ -101,5 +101,26 @@ describe('application shell & complete user journey', () => {
     expect(input).toHaveValue('a*');
     // Stale simulation result should be cleared when DFA changes
     expect(screen.queryByText(/✗ REJECTED/i)).not.toBeInTheDocument();
+    // A new compilation restarts the walkthrough at step 1
+    expect(screen.getByRole('tab', { name: /Regular Expression/i })).toHaveAttribute(
+      'aria-selected',
+      'true'
+    );
+  });
+
+  it('opens the first step after creating a DFA, even from a later step', async () => {
+    render(<App />);
+    const input = screen.getByLabelText(/regular expression/i);
+    const firstStepTab = () => screen.getByRole('tab', { name: /Regular Expression/i });
+
+    await userEvent.type(input, 'ab');
+    await userEvent.click(screen.getByRole('button', { name: /convert/i }));
+    expect(firstStepTab()).toHaveAttribute('aria-selected', 'true');
+
+    await userEvent.click(screen.getByRole('tab', { name: /Followpos Table/i }));
+    await userEvent.clear(input);
+    await userEvent.type(input, 'a|b');
+    await userEvent.click(screen.getByRole('button', { name: /convert/i }));
+    expect(firstStepTab()).toHaveAttribute('aria-selected', 'true');
   });
 });

@@ -7,13 +7,13 @@
  */
 export const GRAPH_COLORS = {
   /** Ordinary transition edges and arrowheads (--edge). */
-  edge: '#c2cbc5',
+  edge: '#5c5a52',
   /** Epsilon transitions (--edge-epsilon). */
-  edgeEpsilon: '#659579',
+  edgeEpsilon: '#8a8475',
   /** Transition taken by the current simulation step (--edge-highlight). */
-  edgeHighlight: '#65f8ff',
+  edgeHighlight: '#9a5b00',
   /** Background behind exported diagrams (--surface). */
-  exportBackground: '#090e0b',
+  exportBackground: '#fbf9f4',
 } as const;
 
 /** Stroke and marker colour for a transition edge in the given state. */

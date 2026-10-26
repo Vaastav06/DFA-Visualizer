@@ -104,19 +104,16 @@ export function HomePage() {
     }
   };
 
+  // Every new compilation starts the walkthrough from the first step.
   const handleCompile = (regexToCompile: string) => {
     compile(regexToCompile);
-    if (activeStep === 'input') {
-      setActiveStep('dfa');
-    }
+    setActiveStep('input');
   };
 
   const handleExampleSelect = (exampleExpr: string) => {
     setExpression(exampleExpr);
     compile(exampleExpr);
-    if (activeStep === 'input') {
-      setActiveStep('dfa');
-    }
+    setActiveStep('input');
   };
 
   const handleStepSelect = (stepId: string) => {

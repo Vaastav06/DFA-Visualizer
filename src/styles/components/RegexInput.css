@@ -31,7 +31,7 @@
   border: var(--dp-border-hairline) solid var(--border-strong);
   border-radius: 0;
   background: var(--surface-sunken);
-  color: var(--accent);
+  color: var(--accent-text);
   font-family: var(--font-mono);
   font-size: var(--font-size-lg);
 }
@@ -42,7 +42,7 @@
 }
 
 .regex-input__field:focus {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
   border-color: var(--accent);
 }

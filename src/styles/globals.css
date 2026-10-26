@@ -62,11 +62,11 @@ code {
 }
 
 a {
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 3px;
 }
 
@@ -117,7 +117,7 @@ thead th {
 caption {
   caption-side: top;
   padding-bottom: var(--space-2);
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: var(--dp-typography-label);
   letter-spacing: 0.08em;
   text-align: left;
@@ -191,12 +191,12 @@ caption {
     radial-gradient(
       circle at 58% 50%,
       transparent 0 20px,
-      var(--accent) 20px 22px,
+      var(--state-accepting) 20px 22px,
       transparent 22px 26px,
-      var(--accent) 26px 28px,
+      var(--state-accepting) 26px 28px,
       transparent 28px
     ),
-    linear-gradient(var(--text-primary), var(--text-primary)) 14% 50% / 24% 2px no-repeat,
+    linear-gradient(var(--state-start), var(--state-start)) 14% 50% / 24% 2px no-repeat,
     linear-gradient(var(--accent), var(--accent)) 0 0 / 28px 2px no-repeat,
     linear-gradient(var(--accent), var(--accent)) 0 0 / 2px 28px no-repeat,
     var(--surface);
@@ -250,9 +250,9 @@ caption {
   appearance: none;
   -webkit-appearance: none;
   padding: var(--space-2) var(--space-4);
-  border: var(--dp-border-hairline) solid var(--border-strong);
+  border: var(--dp-border-hairline) solid var(--border);
   border-radius: var(--dp-radius-control);
-  background: transparent;
+  background: var(--surface);
   color: var(--text-primary);
   font-family: var(--font-mono);
   font-size: var(--dp-typography-label);
@@ -265,7 +265,7 @@ caption {
 
 .button:hover:not(:disabled) {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .button:active:not(:disabled) {
@@ -293,18 +293,18 @@ caption {
   background: linear-gradient(
       135deg,
       transparent var(--clip-corner),
-      var(--text-primary) var(--clip-corner) calc(100% - var(--clip-corner)),
+      var(--accent-hover) var(--clip-corner) calc(100% - var(--clip-corner)),
       transparent calc(100% - var(--clip-corner))
     )
     border-box;
-  color: var(--text-inverse);
+  color: #ffffff;
 }
 
-/* Toggled-on secondary action: green inset edge and green label. */
+/* Toggled-on secondary action: crimson inset edge and label. */
 .button--active {
   border-color: var(--accent);
   box-shadow: inset 3px 0 0 var(--accent);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 /* ---------- shared states ---------- */
@@ -364,7 +364,7 @@ caption {
 
 .error-display__dismiss:hover:not(:disabled) {
   border-color: var(--accent);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 @media (max-width: 1050px) {
@@ -567,7 +567,7 @@ caption {
   border: var(--dp-border-hairline) solid var(--border);
   box-shadow: inset 3px 0 0 var(--accent);
   overflow-x: auto;
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .code-block code {
@@ -610,7 +610,7 @@ caption {
 
 .algorithm-explanation__title {
   margin-bottom: var(--space-2);
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: var(--dp-typography-label);
   letter-spacing: 0.08em;
 }
@@ -647,7 +647,7 @@ caption {
   padding: 0.1em 0.5em;
   font-size: var(--dp-typography-metadata);
   font-weight: 500;
-  color: var(--success);
+  color: var(--success-text);
   background: var(--success-subtle);
   border: var(--dp-border-hairline) solid currentColor;
   text-transform: uppercase;
@@ -666,7 +666,7 @@ caption {
 }
 
 .state-badge--dead {
-  color: var(--danger);
+  color: var(--danger-text);
   background: var(--danger-subtle);
 }
 
@@ -686,7 +686,7 @@ caption {
 .transition-table__row--selected,
 .dfa-mapping__row--selected {
   background: var(--accent-subtle) !important;
-  outline: 1px solid var(--accent);
+  outline: 1px solid var(--focus-ring);
   box-shadow: inset 3px 0 0 var(--accent);
 }
 
@@ -730,7 +730,7 @@ caption {
 
 .dfa-comparison__arrow-glyph {
   font-size: var(--font-size-xl);
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 700;
 }
 
@@ -766,7 +766,7 @@ caption {
   padding: var(--space-1) var(--space-2);
   border: var(--dp-border-hairline) solid var(--accent);
   background: var(--surface-sunken);
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: var(--font-size-xs);
   font-weight: 600;
 }
@@ -809,7 +809,7 @@ caption {
 
 .dfa-comparison__row--selected {
   background: var(--accent-subtle) !important;
-  outline: 1px solid var(--accent);
+  outline: 1px solid var(--focus-ring);
   box-shadow: inset 3px 0 0 var(--accent);
 }
 
@@ -858,7 +858,7 @@ caption {
 }
 
 .simulator__field:focus {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
   border-color: var(--accent);
 }
@@ -890,13 +890,13 @@ caption {
 .simulator__verdict--accepted {
   background: var(--success-subtle);
   border-color: var(--success);
-  color: var(--success);
+  color: var(--success-text);
 }
 
 .simulator__verdict--rejected {
   background: var(--danger-subtle);
   border-color: var(--danger);
-  color: var(--danger);
+  color: var(--danger-text);
 }
 
 .simulator__note {
@@ -908,7 +908,7 @@ caption {
 .simulator__trace h4 {
   margin-bottom: var(--space-3);
   font-size: var(--dp-typography-label);
-  color: var(--accent);
+  color: var(--accent-text);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -950,7 +950,7 @@ caption {
 }
 
 .step-dead {
-  color: var(--error);
+  color: var(--error-text);
   font-weight: 700;
 }
 

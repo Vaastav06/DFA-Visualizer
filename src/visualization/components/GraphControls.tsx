@@ -10,6 +10,7 @@
 
 import React from 'react';
 import { useReactFlow } from '@xyflow/react';
+import { GRAPH_COLORS } from '../graphColors';
 
 interface GraphControlsProps {
   onZoomIn?: () => void;
@@ -86,7 +87,9 @@ export function GraphControls({
         if (shape) {
           const markerId = marker.id || '';
           const shapeColor =
-            markerId.includes('highlight') || markerId.includes('warning') ? '#b3720a' : '#334155';
+            markerId.includes('highlight') || markerId.includes('warning')
+              ? GRAPH_COLORS.edgeHighlight
+              : GRAPH_COLORS.edge;
           shape.setAttribute('fill', shapeColor);
           shape.setAttribute('stroke', shapeColor);
         }
@@ -95,7 +98,7 @@ export function GraphControls({
       const { toPng, toJpeg } = await import('html-to-image');
       const exportFn = format === 'jpeg' ? toJpeg : toPng;
       const dataUrl = await exportFn(canvas, {
-        backgroundColor: '#ffffff',
+        backgroundColor: GRAPH_COLORS.exportBackground,
         pixelRatio: 3, // 3x ultra-sharp resolution for crisp vector lines and text
         quality: 0.98,
         filter: (node) => {

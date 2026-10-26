@@ -27,6 +27,7 @@ import {
   type Edge,
 } from '@xyflow/react';
 import type { TransitionEdgeData } from '../types';
+import { edgeColor } from '../graphColors';
 
 export type TransitionEdgeType = Edge<TransitionEdgeData, 'transition'>;
 
@@ -73,19 +74,7 @@ export function TransitionEdge({
     .filter(Boolean)
     .join(' ');
 
-  const isDark =
-    typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches;
-  const strokeColor = isHighlighted
-    ? isDark
-      ? '#e2b063'
-      : '#b3720a'
-    : isEpsilon
-      ? isDark
-        ? '#6b7382'
-        : '#9aa2b1'
-      : isDark
-        ? '#94a3b8'
-        : '#334155';
+  const strokeColor = edgeColor(Boolean(isHighlighted), Boolean(isEpsilon));
 
   return (
     <>

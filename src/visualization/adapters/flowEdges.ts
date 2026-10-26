@@ -21,6 +21,7 @@ import {
   type RouteNode,
   type RoutingResult,
 } from '../layout/edgeRouting';
+import { edgeColor } from '../graphColors';
 
 type HighlightedTransition = { from: number; to: number; symbol?: string | null };
 
@@ -69,19 +70,7 @@ export function buildFlowEdges(
     // Use explicit hex colors so SVG markerEnd url(#...) does not include
     // unescaped parentheses from CSS vars (e.g. var(--edge)), ensuring markers
     // render properly in browser and export crisply to PNG/JPEG.
-    const isDark =
-      typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches;
-    const markerColor = isHighlighted
-      ? isDark
-        ? '#e2b063'
-        : '#b3720a'
-      : edge.data.isEpsilon
-        ? isDark
-          ? '#6b7382'
-          : '#9aa2b1'
-        : isDark
-          ? '#94a3b8'
-          : '#334155';
+    const markerColor = edgeColor(isHighlighted, edge.data.isEpsilon);
 
     return {
       id: edge.id,

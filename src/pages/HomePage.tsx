@@ -327,10 +327,6 @@ export function HomePage() {
           </div>
         )}
       </section>
-
-      <footer className="page__footer">
-        <p>Compiler Design team project — see docs/ for the architecture and contracts.</p>
-      </footer>
     </main>
   );
 }

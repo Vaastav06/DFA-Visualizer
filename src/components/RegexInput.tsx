@@ -35,6 +35,11 @@ export function RegexInput({
     onChange?.(next);
   }
 
+  function handleClear() {
+    setInternal('');
+    onChange?.('');
+  }
+
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
     const effectiveValue = current.trim() === '' ? DEFAULT_PLACEHOLDER : current;
@@ -72,6 +77,18 @@ export function RegexInput({
         >
           Create DFA
         </button>
+        {current.length > 0 && (
+          <button
+            type="button"
+            className="button button--secondary regex-input__clear"
+            onClick={handleClear}
+            disabled={disabled}
+            aria-label="Clear expression"
+            title="Clear regular expression"
+          >
+            Clear
+          </button>
+        )}
       </div>
     </form>
   );

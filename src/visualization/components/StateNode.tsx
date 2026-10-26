@@ -53,6 +53,13 @@ export function StateNode({ data, selected }: NodeProps<StateNodeType>) {
     .filter(Boolean)
     .join('\n');
 
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      event.currentTarget.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+    }
+  };
+
   return (
     <div
       className={classNames}
@@ -61,6 +68,7 @@ export function StateNode({ data, selected }: NodeProps<StateNodeType>) {
       aria-label={ariaDescription}
       tabIndex={0}
       data-state-id={data.stateId}
+      onKeyDown={handleKeyDown}
     >
       {/* Target & Source handles for edge routing */}
       <Handle

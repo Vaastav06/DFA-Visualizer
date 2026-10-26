@@ -27,25 +27,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Faint static scanlines. Decorative, never above text contrast. */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: repeating-linear-gradient(
-    to bottom,
-    transparent 0 3px,
-    rgba(56, 255, 142, 0.025) 3px 4px
-  );
-}
-
-#root {
-  position: relative;
-  z-index: 1;
-}
-
 h1,
 h2,
 h3,
@@ -218,11 +199,7 @@ caption {
     linear-gradient(var(--text-primary), var(--text-primary)) 14% 50% / 24% 2px no-repeat,
     linear-gradient(var(--accent), var(--accent)) 0 0 / 28px 2px no-repeat,
     linear-gradient(var(--accent), var(--accent)) 0 0 / 2px 28px no-repeat,
-    repeating-linear-gradient(to bottom, transparent 0 3px, rgba(56, 255, 142, 0.08) 3px 4px),
     var(--surface);
-  box-shadow:
-    -4px -4px 0 -2px var(--dp-color-registration),
-    4px 4px 0 -2px var(--dp-color-interference);
 }
 
 .page__title {
@@ -233,9 +210,6 @@ caption {
   letter-spacing: -0.035em;
   text-transform: uppercase;
   overflow-wrap: break-word;
-  text-shadow:
-    -2px 0 rgba(255, 101, 216, 0.45),
-    2px 0 rgba(101, 248, 255, 0.45);
 }
 
 .page__subtitle {

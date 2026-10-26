@@ -101,14 +101,38 @@ export function HomePage() {
     }
   };
 
+  const handleCompile = (regexToCompile: string) => {
+    compile(regexToCompile);
+    if (activeStep === 'input') {
+      setActiveStep('dfa');
+    }
+  };
+
   const handleExampleSelect = (exampleExpr: string) => {
     setExpression(exampleExpr);
     compile(exampleExpr);
+    if (activeStep === 'input') {
+      setActiveStep('dfa');
+    }
   };
 
   const handleStepSelect = (stepId: string) => {
     setActiveStep(stepId as CompilationStepId);
   };
+
+  // Cross-diagram highlighting:
+  // When a leaf position is selected, highlight all DFA states containing that position
+  const highlightedDfaStateIds =
+    selectedPosition !== null && result?.dfa
+      ? result.dfa.states.filter((s) => s.positions?.includes(selectedPosition)).map((s) => s.id)
+      : undefined;
+
+  const highlightedMinDfaStateIds =
+    selectedPosition !== null && result?.minimizedDfa
+      ? result.minimizedDfa.states
+          .filter((s) => s.positions?.includes(selectedPosition))
+          .map((s) => s.id)
+      : undefined;
 
   const renderStepContent = () => {
     if (!result) return null;
@@ -166,13 +190,22 @@ export function HomePage() {
               <DfaGraph
                 dfa={result.dfa}
                 selectedStateId={selectedDfaStateId}
-                onStateClick={(id) => setSelectedDfaStateId(id)}
+                highlightedStateIds={highlightedDfaStateIds}
+                onStateClick={(id) => setSelectedDfaStateId((prev) => (prev === id ? null : id))}
               />
               <div className="table-scroll">
-                <TransitionTable dfa={result.dfa} />
+                <TransitionTable
+                  dfa={result.dfa}
+                  selectedStateId={selectedDfaStateId}
+                  onSelectState={(id) => setSelectedDfaStateId((prev) => (prev === id ? null : id))}
+                />
               </div>
               <div className="table-scroll">
-                <DfaMapping dfa={result.dfa} />
+                <DfaMapping
+                  dfa={result.dfa}
+                  selectedStateId={selectedDfaStateId}
+                  onSelectState={(id) => setSelectedDfaStateId((prev) => (prev === id ? null : id))}
+                />
               </div>
             </div>
           )}
@@ -182,16 +215,28 @@ export function HomePage() {
                 dfa={result.minimizedDfa}
                 kind="minimized-dfa"
                 selectedStateId={selectedMinDfaStateId}
-                onStateClick={(id) => setSelectedMinDfaStateId(id)}
+                highlightedStateIds={highlightedMinDfaStateIds}
+                onStateClick={(id) => setSelectedMinDfaStateId((prev) => (prev === id ? null : id))}
               />
               <div className="table-scroll">
                 <TransitionTable
                   dfa={result.minimizedDfa}
                   caption="Minimized DFA transition table"
+                  selectedStateId={selectedMinDfaStateId}
+                  onSelectState={(id) =>
+                    setSelectedMinDfaStateId((prev) => (prev === id ? null : id))
+                  }
                 />
               </div>
               <div className="table-scroll">
-                <DfaMapping dfa={result.minimizedDfa} caption="Minimized DFA state mapping" />
+                <DfaMapping
+                  dfa={result.minimizedDfa}
+                  caption="Minimized DFA state mapping"
+                  selectedStateId={selectedMinDfaStateId}
+                  onSelectState={(id) =>
+                    setSelectedMinDfaStateId((prev) => (prev === id ? null : id))
+                  }
+                />
               </div>
             </div>
           )}
@@ -218,7 +263,7 @@ export function HomePage() {
         <RegexInput
           value={expression}
           onChange={handleExpressionChange}
-          onSubmit={compile}
+          onSubmit={handleCompile}
           disabled={isCompiling}
           hasError={error !== null}
           errorId="regex-error-message"

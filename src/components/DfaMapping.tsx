@@ -13,6 +13,8 @@ import type { DFA, DFAState } from '../compiler';
 interface DfaMappingProps {
   dfa: DFA;
   caption?: string;
+  selectedStateId?: number | null;
+  onSelectState?: (stateId: number) => void;
 }
 
 /** Maps a single DFA state to a table row. */
@@ -22,7 +24,12 @@ function stateToRow(state: DFAState) {
   return { posString, accepting };
 }
 
-export function DfaMapping({ dfa, caption = 'DFA state mapping' }: DfaMappingProps) {
+export function DfaMapping({
+  dfa,
+  caption = 'DFA state mapping',
+  selectedStateId,
+  onSelectState,
+}: DfaMappingProps) {
   return (
     <table className="dfa-mapping">
       <caption>{caption}</caption>
@@ -36,8 +43,14 @@ export function DfaMapping({ dfa, caption = 'DFA state mapping' }: DfaMappingPro
       <tbody>
         {dfa.states.map((state) => {
           const { posString, accepting } = stateToRow(state);
+          const isSelected = selectedStateId === state.id;
           return (
-            <tr key={state.id}>
+            <tr
+              key={state.id}
+              className={isSelected ? 'dfa-mapping__row--selected' : undefined}
+              onClick={() => onSelectState?.(state.id)}
+              style={onSelectState ? { cursor: 'pointer' } : undefined}
+            >
               <th scope="row">q{state.id}</th>
               <td>
                 <code>{posString}</code>

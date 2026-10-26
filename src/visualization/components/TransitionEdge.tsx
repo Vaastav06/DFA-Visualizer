@@ -83,6 +83,11 @@ export function TransitionEdge({
         className={pathClassName}
         interactionWidth={14}
       />
+      {isHighlighted && edgePath && (
+        <circle r="4.5" className="transition-edge-pulse">
+          <animateMotion dur="0.9s" repeatCount="indefinite" path={edgePath} />
+        </circle>
+      )}
       {data?.label && (
         <EdgeLabelRenderer>
           <div

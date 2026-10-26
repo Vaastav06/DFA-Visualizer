@@ -24,9 +24,11 @@ export function StringSimulator({ dfa }: StringSimulatorProps) {
   const [input, setInput] = useState('');
   const [result, setResult] = useState<SimulationResult | null>(null);
   const [currentStep, setCurrentStep] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
 
   // Clear stale simulation results whenever the DFA changes
   useEffect(() => {
+    setIsPlaying(false);
     setResult(null);
     setCurrentStep(0);
   }, [dfa]);
@@ -35,12 +37,42 @@ export function StringSimulator({ dfa }: StringSimulatorProps) {
     (event?: FormEvent) => {
       event?.preventDefault();
       if (!dfa) return;
+      setIsPlaying(false);
       const simResult = simulate(dfa, input);
       setResult(simResult);
       setCurrentStep(0);
     },
     [dfa, input]
   );
+
+  useEffect(() => {
+    if (!isPlaying || !result || currentStep >= result.steps.length - 1) {
+      if (isPlaying) setIsPlaying(false);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setCurrentStep((c) => {
+        if (c < result.steps.length - 1) {
+          return c + 1;
+        }
+        setIsPlaying(false);
+        return c;
+      });
+    }, 900);
+
+    return () => clearTimeout(timer);
+  }, [isPlaying, result, currentStep]);
+
+  const togglePlay = useCallback(() => {
+    if (!result || result.steps.length === 0) return;
+    if (currentStep >= result.steps.length - 1) {
+      setCurrentStep(0);
+      setIsPlaying(true);
+    } else {
+      setIsPlaying((p) => !p);
+    }
+  }, [result, currentStep]);
 
   const highlight = useMemo(() => {
     if (!result) return undefined;
@@ -86,6 +118,7 @@ export function StringSimulator({ dfa }: StringSimulatorProps) {
   }, [currentStep]);
 
   const resetSimulation = useCallback(() => {
+    setIsPlaying(false);
     setResult(null);
     setCurrentStep(0);
   }, []);
@@ -159,6 +192,16 @@ export function StringSimulator({ dfa }: StringSimulatorProps) {
                   aria-label="Previous step"
                 >
                   Prev
+                </button>
+                <button
+                  type="button"
+                  className="button button--secondary"
+                  onClick={togglePlay}
+                  aria-label={
+                    isPlaying ? 'Pause simulation animation' : 'Play simulation animation'
+                  }
+                >
+                  {isPlaying ? 'Pause' : 'Play'}
                 </button>
                 <button
                   type="button"

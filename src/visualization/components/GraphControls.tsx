@@ -15,9 +15,20 @@ interface GraphControlsProps {
   onZoomOut?: () => void;
   onFitView?: () => void;
   onReset?: () => void;
+  onToggleMiniMap?: () => void;
+  isMiniMapVisible?: boolean;
+  onExportSvg?: () => void;
 }
 
-export function GraphControls({ onZoomIn, onZoomOut, onFitView, onReset }: GraphControlsProps) {
+export function GraphControls({
+  onZoomIn,
+  onZoomOut,
+  onFitView,
+  onReset,
+  onToggleMiniMap,
+  isMiniMapVisible = false,
+  onExportSvg,
+}: GraphControlsProps) {
   const reactFlow = useReactFlow();
 
   const handleZoomIn = () => {
@@ -53,6 +64,37 @@ export function GraphControls({ onZoomIn, onZoomOut, onFitView, onReset }: Graph
     }
   };
 
+  const handleExport = () => {
+    if (onExportSvg) {
+      onExportSvg();
+      return;
+    }
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    const svgElem = document.querySelector('.automata-graph .react-flow__viewport');
+    if (!svgElem || typeof URL.createObjectURL !== 'function') return;
+
+    try {
+      const cloned = svgElem.cloneNode(true) as HTMLElement;
+      const svgWrapper = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svgWrapper.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      svgWrapper.setAttribute('width', '1000');
+      svgWrapper.setAttribute('height', '600');
+      svgWrapper.innerHTML = cloned.innerHTML;
+      const svgData = new XMLSerializer().serializeToString(svgWrapper);
+      const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'automaton-diagram.svg';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch {
+      // In constrained environments where XMLSerializer or Blob is unsupported
+    }
+  };
+
   return (
     <div className="graph-controls" role="group" aria-label="Graph controls">
       <button type="button" onClick={handleZoomIn} aria-label="Zoom in">
@@ -66,6 +108,24 @@ export function GraphControls({ onZoomIn, onZoomOut, onFitView, onReset }: Graph
       </button>
       <button type="button" onClick={handleReset} aria-label="Reset graph view">
         Reset
+      </button>
+      {onToggleMiniMap && (
+        <button
+          type="button"
+          onClick={onToggleMiniMap}
+          aria-label={isMiniMapVisible ? 'Hide minimap' : 'Show minimap'}
+          title="Toggle MiniMap"
+        >
+          {isMiniMapVisible ? 'Map ✓' : 'Map'}
+        </button>
+      )}
+      <button
+        type="button"
+        onClick={handleExport}
+        aria-label="Export diagram as SVG"
+        title="Export SVG diagram"
+      >
+        Export
       </button>
     </div>
   );

@@ -61,6 +61,17 @@ describe('<NfaGraph />', () => {
     }
   });
 
+  it('renders extended graph controls including export and minimap toggle', () => {
+    render(<DfaGraph dfa={MOCK_DFA} />);
+
+    expect(screen.getByRole('button', { name: /export diagram as svg/i })).toBeInTheDocument();
+    const mapToggle = screen.getByRole('button', { name: /show minimap/i });
+    expect(mapToggle).toBeInTheDocument();
+
+    fireEvent.click(mapToggle);
+    expect(screen.getByRole('button', { name: /hide minimap/i })).toBeInTheDocument();
+  });
+
   it('renders start state indicator and accepting state indicator on NFA nodes', () => {
     const { container } = render(<NfaGraph nfa={MOCK_NFA} />);
 

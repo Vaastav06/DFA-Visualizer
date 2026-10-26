@@ -17,6 +17,8 @@ interface RegexInputProps {
   errorId?: string;
 }
 
+const DEFAULT_PLACEHOLDER = '(a|b)*abb';
+
 export function RegexInput({
   value,
   onChange,
@@ -35,7 +37,12 @@ export function RegexInput({
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    onSubmit?.(current);
+    const effectiveValue = current.trim() === '' ? DEFAULT_PLACEHOLDER : current;
+    if (current.trim() === '') {
+      setInternal(effectiveValue);
+      onChange?.(effectiveValue);
+    }
+    onSubmit?.(effectiveValue);
   }
 
   return (
@@ -50,15 +57,20 @@ export function RegexInput({
           type="text"
           autoComplete="off"
           spellCheck={false}
-          placeholder="(a|b)*abb"
+          placeholder={DEFAULT_PLACEHOLDER}
           value={current}
           disabled={disabled}
           aria-invalid={hasError ? true : undefined}
           aria-describedby={hasError ? errorId : undefined}
           onChange={(event) => handleChange(event.target.value)}
         />
-        <button type="submit" className="button button--primary" disabled={disabled}>
-          Convert
+        <button
+          type="submit"
+          className="button button--primary regex-input__submit"
+          disabled={disabled}
+          aria-label="Create DFA (Convert)"
+        >
+          Create DFA
         </button>
       </div>
     </form>

@@ -473,6 +473,17 @@ caption {
   padding: 0.15em 0.4em;
 }
 
+.transition-table__row--selected,
+.dfa-mapping__row--selected {
+  background: var(--accent-subtle) !important;
+  outline: 2px solid var(--accent);
+}
+
+.transition-table tbody tr:hover,
+.dfa-mapping tbody tr:hover {
+  background: var(--surface-sunken);
+}
+
 /* ---------- simulator ---------- */
 
 .simulator {

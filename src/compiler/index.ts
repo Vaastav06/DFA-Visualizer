@@ -11,11 +11,10 @@
 export { compileRegex, PIPELINE_STEPS } from './compiler';
 
 /* ---- pipeline stage functions ---- */
-export { validate, validate as validateRegex, MAX_REGEX_LENGTH } from './validator';
+export { validate, MAX_REGEX_LENGTH } from './validator';
 export { tokenize, isLiteral, collectAlphabet } from './tokenizer';
 export {
   insertExplicitConcatenation,
-  insertExplicitConcatenation as addExplicitConcatenation,
   CONCAT_OPERATOR,
 } from './explicitConcatenation';
 export { infixToPostfix, PRECEDENCE } from './infixToPostfix';
@@ -28,12 +27,11 @@ export { calculateLastpos } from './lastpos';
 export { calculateFollowpos } from './followpos';
 export {
   constructDirectDFA,
-  constructDirectDFA as constructDirectDfa,
   positionSetKey,
 } from './directDfa';
 
 /* ---- string simulation ---- */
-export { simulate, simulateDFA } from './simulator';
+export { simulate } from './simulator';
 
 /* ---- errors ---- */
 export {
@@ -54,7 +52,6 @@ export type {
   DFA,
   DFAState,
   FollowPosEntry,
-  NodeAnalysis,
   PositionInfo,
   SimulationResult,
   SimulationStep,

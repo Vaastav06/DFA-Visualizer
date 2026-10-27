@@ -70,16 +70,6 @@ export interface SyntaxAnalysis {
 }
 
 /**
- * Per-node analysis entry.
- */
-export interface NodeAnalysis {
-  nodeId: number;
-  nullable: boolean;
-  firstpos: number[];
-  lastpos: number[];
-}
-
-/**
  * An entry in the followpos table for a leaf position.
  */
 export interface FollowPosEntry {

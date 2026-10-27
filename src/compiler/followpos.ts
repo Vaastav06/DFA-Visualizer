@@ -1,7 +1,6 @@
 /**
  * Stage 5f - Followpos Calculation.
  *
- * OWNER: Person 1.
  * CONTRACT: computes the followpos table for each leaf position in the syntax tree.
  *
  * Rules:

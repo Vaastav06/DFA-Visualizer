@@ -33,7 +33,6 @@ export interface SyntaxTreeNodeData extends Record<string, unknown> {
 export interface TransitionEdgeData extends Record<string, unknown> {
   symbols: string[];
   label: string;
-  isEpsilon: false;
   isHighlighted?: boolean;
   route?: EdgeRoute;
 }

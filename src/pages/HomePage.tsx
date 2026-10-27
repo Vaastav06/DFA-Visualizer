@@ -1,7 +1,6 @@
 /**
  * The single page of the application.
  *
- * OWNER: Person 3.
  *
  *   RegexInput + ExampleExpressions
  *        -> compile() from useAppContext()

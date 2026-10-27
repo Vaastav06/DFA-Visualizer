@@ -1,7 +1,6 @@
 /**
  * Stage 5c - Nullable Calculation.
  *
- * OWNER: Person 1.
  * CONTRACT: determines whether a syntax tree node can match the empty string (ε).
  *
  * Rules:

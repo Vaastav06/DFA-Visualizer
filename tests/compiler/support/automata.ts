@@ -3,7 +3,7 @@
 import { simulate } from '../../../src/compiler/simulator';
 import type { DFA } from '../../../src/compiler/types';
 
-/** Convenience wrapper so tests read the same way for both automaton kinds. */
+/** Convenience wrapper for DFA string acceptance in tests. */
 export function dfaAccepts(dfa: DFA, input: string): boolean {
   return simulate(dfa, input).accepted;
 }

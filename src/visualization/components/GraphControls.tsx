@@ -1,7 +1,6 @@
 /**
  * Zoom / pan / fit / reset / image export controls for a graph.
  *
- * OWNER: Person 2.
  * Wired to the React Flow instance (`useReactFlow`), with fallback to custom handlers.
  *
  * Controls: zoom in, zoom out, fit to view, reset, export PNG and JPEG.

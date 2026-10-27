@@ -1,9 +1,8 @@
 /*
  * Design tokens.
  *
- * SHARED FILE — Person 2 and Person 3 both style against these. Add a token
- * rather than hard-coding a colour, and do not rename an existing one without
- * telling the team.
+ * SHARED FILE — Add a token rather than hard-coding a colour, and do not
+ * rename an existing one without coordination.
  *
  * Semantic names only: `--accent`, not `--blue-500`.
  *
@@ -78,7 +77,6 @@
   --state-dead: var(--error);
   --state-dead-fill: #231716; /* Faint mahogany */
   --edge: #6e5e52; /* Rawhide Twine */
-  --edge-epsilon: var(--success);
   --edge-highlight: var(--warning);
   --edge-pulse: #e09842; /* Golden campfire flame */
 

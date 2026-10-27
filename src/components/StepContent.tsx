@@ -1,7 +1,6 @@
 /**
  * The panel for the currently selected pipeline step.
  *
- * OWNER: Person 3.
  * Renders the title, description, and children for the active compilation step.
  *
  * This is where the compiler, the visualization and the UI meet — see

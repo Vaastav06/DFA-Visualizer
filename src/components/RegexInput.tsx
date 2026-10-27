@@ -1,7 +1,6 @@
 /**
  * The regular-expression input field and Convert button.
  *
- * OWNER: Person 3.
  * Supports keyboard submit, disabled state, and aria-describedby error wiring.
  */
 

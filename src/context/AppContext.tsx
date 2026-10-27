@@ -1,7 +1,6 @@
 /**
  * Application-wide state.
  *
- * OWNER: Person 3.
  * Provides compiler state, current regex expression, and active pipeline step.
  */
 

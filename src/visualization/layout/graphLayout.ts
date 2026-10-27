@@ -1,7 +1,6 @@
 /**
  * Graph layout.
  *
- * OWNER: Person 2.
  *
  * CONTRACT: given the states, the transitions and the start state, return one
  * `Position` per state id. Approach: deterministic BFS layering from the start

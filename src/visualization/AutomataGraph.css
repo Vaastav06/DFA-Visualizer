@@ -1,7 +1,6 @@
 /*
  * Automata Graph Styles
  *
- * OWNER: Person 2.
  * Uses semantic tokens from variables.css for light/dark mode and high contrast.
  */
 
@@ -338,11 +337,6 @@
     stroke-width var(--dp-motion-interaction) linear;
 }
 
-.transition-edge-path--epsilon {
-  stroke: var(--edge-epsilon);
-  stroke-dasharray: 6 4;
-}
-
 .transition-edge-path--highlighted {
   stroke: var(--edge-highlight) !important;
   stroke-width: 3px !important;
@@ -368,12 +362,6 @@
   box-shadow: var(--shadow-sm);
   user-select: none;
   white-space: nowrap;
-}
-
-.transition-edge-label--epsilon {
-  color: var(--text-secondary);
-  font-style: italic;
-  border-style: dashed;
 }
 
 .transition-edge-label--highlighted {
@@ -510,13 +498,6 @@
   align-items: center;
   justify-content: center;
   line-height: 1;
-}
-
-.graph-legend__swatch--epsilon {
-  width: 18px;
-  height: 0;
-  border-radius: 0;
-  border-top: 2px dashed var(--edge-epsilon);
 }
 
 .graph-legend__swatch--op {

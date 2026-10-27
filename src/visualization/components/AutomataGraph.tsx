@@ -1,7 +1,6 @@
 /**
  * The shared graph shell used by `<DfaGraph />`.
  *
- * OWNER: Person 2.
  * Mounts `<ReactFlow />` with custom node and edge types, deterministic
  * layout from `layout/graphLayout.ts`, edge routing from
  * `layout/edgeRouting.ts`, legend, and controls.

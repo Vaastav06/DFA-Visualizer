@@ -1,7 +1,6 @@
 /**
  * Tests for deterministic edge routing (geometry only, no browser rendering).
  *
- * OWNER: Person 2.
  */
 
 import { describe, expect, it } from 'vitest';

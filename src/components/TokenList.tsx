@@ -1,7 +1,6 @@
 /**
  * Horizontal list of tokenizer output chips.
  *
- * OWNER: Person 3.
  */
 
 interface TokenListProps {

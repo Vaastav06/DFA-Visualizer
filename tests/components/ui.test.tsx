@@ -1,5 +1,5 @@
 /**
- * Comprehensive component tests for tests/components/ — OWNER: Person 3.
+ * Comprehensive component tests for tests/components/.
  */
 
 import { describe, expect, it, vi } from 'vitest';

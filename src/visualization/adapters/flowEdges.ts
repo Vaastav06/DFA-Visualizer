@@ -1,8 +1,6 @@
 /**
  * Adapted graph -> routed React Flow edges.
  *
- * OWNER: Person 2.
- *
  * Pure helpers used by `AutomataGraph` (kept out of the component so routing
  * and highlighting can be tested without a browser):
  *  - `routeGraph`      node top-left positions -> routed geometry per edge
@@ -70,7 +68,7 @@ export function buildFlowEdges(
     // Use explicit hex colors so SVG markerEnd url(#...) does not include
     // unescaped parentheses from CSS vars (e.g. var(--edge)), ensuring markers
     // render properly in browser and export crisply to PNG/JPEG.
-    const markerColor = edgeColor(isHighlighted, edge.data.isEpsilon);
+    const markerColor = edgeColor(isHighlighted);
 
     return {
       id: edge.id,

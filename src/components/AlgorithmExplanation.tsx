@@ -1,7 +1,6 @@
 /**
  * Prose explaining the algorithm behind the current step.
  *
- * OWNER: Person 3.
  * Sourced from docs/COMPILER_PIPELINE.md so the app and the docs agree.
  */
 

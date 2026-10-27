@@ -1,7 +1,6 @@
 /**
  * Table mapping DFA states to their canonical syntax-tree position subsets.
  *
- * OWNER: Person 2.
  * Crucial for explaining the direct followpos DFA construction algorithm:
  * shows which leaf positions form each deterministic state.
  */

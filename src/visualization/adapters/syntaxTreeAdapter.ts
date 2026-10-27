@@ -1,7 +1,6 @@
 /**
  * SyntaxTree -> graph adapter.
  *
- * OWNER: Person 2.
  * Converts an augmented SyntaxNode tree into nodes and edges for React Flow.
  */
 

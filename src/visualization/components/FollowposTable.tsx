@@ -1,7 +1,6 @@
 /**
  * Interactive Followpos Table visualization.
  *
- * OWNER: Person 2.
  * Renders the authoritative followpos mapping produced by Dragon Book Algorithm 3.36.
  */
 

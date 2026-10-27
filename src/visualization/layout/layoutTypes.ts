@@ -1,7 +1,6 @@
 /**
  * Layout types.
  *
- * OWNER: Person 2.
  *
  * The layout step decides where each state is drawn. It is deliberately
  * separate from the adapters so the algorithm can be swapped without touching

@@ -1,8 +1,7 @@
 /**
  * PUBLIC API OF THE VISUALIZATION MODULE.
  *
- * OWNER: Person 2.
- * Person 3 imports from `@/visualization` (or `src/visualization`).
+ * Consumed by the UI layer via `@/visualization` (or `src/visualization`).
  *
  * This provides interactive visualization of the Direct Regular Expression → DFA
  * construction pipeline (Dragon Book Algorithm 3.36):

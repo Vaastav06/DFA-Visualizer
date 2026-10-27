@@ -1,7 +1,6 @@
 /**
  * User-facing error message.
  *
- * OWNER: Person 3.
  *
  * Shows ONLY the message. Developer detail (`CompilerError.details`, stack
  * traces) must never reach this component — see docs/ERROR_HANDLING.md.

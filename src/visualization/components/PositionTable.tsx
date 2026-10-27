@@ -1,7 +1,6 @@
 /**
  * Table displaying 1-based leaf position numbering.
  *
- * OWNER: Person 2.
  * Renders the position table from `result.positions`, visually distinguishing
  * the augmented end-marker `#` from normal alphabet symbols.
  */

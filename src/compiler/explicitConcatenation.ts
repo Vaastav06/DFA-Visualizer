@@ -1,7 +1,6 @@
 /**
  * Stage 3 - Explicit concatenation.
  *
- * OWNER: Person 1.
  * CONTRACT: inserts the internal concatenation operator `.` wherever
  * concatenation is implied, so the shunting-yard pass can treat it like any
  * other binary operator.

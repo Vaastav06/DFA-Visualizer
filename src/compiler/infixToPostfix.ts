@@ -1,7 +1,6 @@
 /**
  * Stage 4 - Infix to postfix (shunting-yard).
  *
- * OWNER: Person 1.
  * CONTRACT: converts the explicit-concatenation token list into postfix
  * (reverse Polish) order. Parentheses disappear; the result contains only
  * literals and operators.

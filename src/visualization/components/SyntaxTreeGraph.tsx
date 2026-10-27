@@ -1,7 +1,6 @@
 /**
  * PUBLIC COMPONENT — renders the augmented Syntax Tree.
  *
- * OWNER: Person 2. Consumed by Person 3 as:
  *   <SyntaxTreeGraph tree={result.syntaxTree} />
  */
 

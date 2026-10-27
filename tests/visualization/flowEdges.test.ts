@@ -2,7 +2,6 @@
  * Tests for the adapted-graph -> React Flow edge step: routing is attached,
  * simulation highlighting survives rerouting, nothing is added or dropped.
  *
- * OWNER: Person 2.
  */
 
 import { describe, expect, it } from 'vitest';

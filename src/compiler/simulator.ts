@@ -1,7 +1,6 @@
 /**
  * Stage 9 - String simulation.
  *
- * OWNER: Person 1.
  * CONTRACT: runs `input` through `dfa` one character at a time and records a
  * full trace. The UI replays `steps`/`path` to animate the run, so the trace
  * must be complete even when the string is rejected.

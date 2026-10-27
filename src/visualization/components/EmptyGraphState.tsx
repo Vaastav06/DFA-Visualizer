@@ -1,6 +1,5 @@
 /**
  * Shown by a graph component when there is no automaton to draw.
- * OWNER: Person 2.
  */
 
 interface EmptyGraphStateProps {

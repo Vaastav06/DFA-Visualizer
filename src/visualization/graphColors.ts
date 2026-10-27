@@ -8,8 +8,6 @@
 export const GRAPH_COLORS = {
   /** Ordinary transition edges and arrowheads (--edge / Rawhide Twine). */
   edge: '#6e5e52',
-  /** Epsilon transitions (--edge-epsilon / Sagebrush Green). */
-  edgeEpsilon: '#5a7d5a',
   /** Transition taken by active simulation step (--edge-highlight / Warm Brass). */
   edgeHighlight: '#d48c38',
   /** Background behind exported diagrams (--canvas / Charred Timber). */
@@ -17,7 +15,6 @@ export const GRAPH_COLORS = {
 } as const;
 
 /** Stroke and marker colour for a transition edge in the given state. */
-export function edgeColor(isHighlighted: boolean, isEpsilon: boolean): string {
-  if (isHighlighted) return GRAPH_COLORS.edgeHighlight;
-  return isEpsilon ? GRAPH_COLORS.edgeEpsilon : GRAPH_COLORS.edge;
+export function edgeColor(isHighlighted: boolean): string {
+  return isHighlighted ? GRAPH_COLORS.edgeHighlight : GRAPH_COLORS.edge;
 }

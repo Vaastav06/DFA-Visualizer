@@ -1,7 +1,6 @@
 /**
  * Runs a test string against the DFA and shows the trace.
  *
- * OWNER: Person 3.
  *
  * Calls `simulate(dfa, input)` from `@/compiler`, renders the
  * accept/reject verdict and step-through trace, passing a

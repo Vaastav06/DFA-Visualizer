@@ -2,7 +2,6 @@
  * Component and integration tests for visualization public components:
  * <DfaGraph /> and <SyntaxTreeGraph />.
  *
- * OWNER: Person 2.
  */
 
 import { describe, expect, it, vi } from 'vitest';

@@ -1,7 +1,6 @@
 /**
  * Tests for syntax tree adapter and layout.
  *
- * OWNER: Person 2.
  */
 
 import { describe, expect, it } from 'vitest';

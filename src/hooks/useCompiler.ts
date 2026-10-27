@@ -1,10 +1,8 @@
 /**
  * The single bridge between the UI and the compiler.
  *
- * OWNER: Person 3.
- *
  * CONTRACT: no component calls `compileRegex` directly — they all go through
- * this hook, so error handling, loading state and the epsilon/state-id display
+ * this hook, so error handling, loading state and state-id display
  * conventions live in exactly one place.
  */
 

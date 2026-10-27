@@ -1,7 +1,6 @@
 /**
  * Stage 1 - Validation.
  *
- * OWNER: Person 1.
  * CONTRACT: accepts the raw user string, throws a `RegexSyntaxError` describing
  * the first problem found, or returns normally when the expression is well
  * formed. Must never return a partially-checked "maybe ok".

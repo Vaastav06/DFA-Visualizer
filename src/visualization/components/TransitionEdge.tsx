@@ -1,20 +1,17 @@
 /**
  * A labelled transition between two states.
  *
- * OWNER: Person 2.
  * Custom React Flow edge supporting normal transitions, merged multi-character
- * labels, epsilon transitions (dashed), self-loops, parallel edges, and
- * simulation highlighting.
+ * labels, self-loops, parallel edges, and simulation highlighting.
  *
  * Geometry is NOT computed here: `AutomataGraph` routes every edge at once via
  * `layout/edgeRouting.ts` (which needs to see all edges to keep them apart) and
  * passes the result in `data.route`. This component only draws it.
  *
- * Visual contract (docs/VISUALIZATION_SPEC.md):
+ * Visual contract:
  *   symbol edge   solid line, label `a` or `a, b` for merged transitions
  *   parallel      siblings / reverse edges bow to distinct sides of the chord
  *   long / back   arcs routed on outer lanes around unrelated states
- *   ε edge        dashed line, label `ε` (never the literal null)
  *   self-loop     loop in the freest direction around the state, label outside
  *   highlighted   accent/warning stroke and heavier label
  */
@@ -41,7 +38,6 @@ export function TransitionEdge({
   markerEnd,
   data,
 }: EdgeProps<TransitionEdgeType>) {
-  const isEpsilon = Boolean(data?.isEpsilon);
   const isHighlighted = Boolean(data?.isHighlighted);
   const route = data?.route;
 
@@ -60,7 +56,6 @@ export function TransitionEdge({
 
   const pathClassName = [
     'transition-edge-path',
-    isEpsilon ? 'transition-edge-path--epsilon' : '',
     isHighlighted ? 'transition-edge-path--highlighted' : '',
   ]
     .filter(Boolean)
@@ -68,13 +63,12 @@ export function TransitionEdge({
 
   const labelClassName = [
     'transition-edge-label',
-    isEpsilon ? 'transition-edge-label--epsilon' : '',
     isHighlighted ? 'transition-edge-label--highlighted' : '',
   ]
     .filter(Boolean)
     .join(' ');
 
-  const strokeColor = edgeColor(Boolean(isHighlighted), Boolean(isEpsilon));
+  const strokeColor = edgeColor(Boolean(isHighlighted));
 
   return (
     <>

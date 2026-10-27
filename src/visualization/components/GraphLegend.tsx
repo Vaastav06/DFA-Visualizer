@@ -1,7 +1,6 @@
 /**
  * Explains the graph's visual conventions to the reader.
  *
- * OWNER: Person 2.
  */
 
 import type { AutomatonKind } from '../types';

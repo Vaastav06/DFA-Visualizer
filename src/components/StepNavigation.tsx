@@ -1,7 +1,6 @@
 /**
  * Tabs/steps for moving through the compilation pipeline.
  *
- * OWNER: Person 3.
  * Supports full WAI-ARIA tablist keyboard navigation (ArrowLeft, ArrowRight,
  * ArrowUp, ArrowDown, Home, End) and roving tabIndex per docs/UI_UX_SPEC.md.
  */

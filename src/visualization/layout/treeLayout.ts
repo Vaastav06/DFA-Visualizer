@@ -1,7 +1,6 @@
 /**
  * Deterministic Hierarchical Syntax Tree Layout.
  *
- * OWNER: Person 2.
  * Computes (x, y) coordinates for binary syntax trees ensuring:
  *  - Parent nodes are placed vertically above their children
  *  - Left children are positioned to the left, right children to the right

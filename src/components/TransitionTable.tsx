@@ -1,7 +1,6 @@
 /**
  * Generic transition table: rows are states, columns are alphabet symbols.
  *
- * OWNER: Person 3.
  *
  * Display rules:
  *   state ids render as `q0`, `q1`, ...    (STATE ID CONTRACT)

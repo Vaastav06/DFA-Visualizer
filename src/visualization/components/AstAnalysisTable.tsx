@@ -1,7 +1,6 @@
 /**
  * Table displaying Nullable, Firstpos, and Lastpos AST node analysis.
  *
- * OWNER: Person 2.
  * Formats the compiler's authoritative node-level analysis without recalculation.
  */
 

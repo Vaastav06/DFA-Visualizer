@@ -33,7 +33,7 @@ export function adaptDfa(dfa: DFA, options: AdaptDfaOptions = {}): AdaptedGraph 
       id: `e${transition.from}-${transition.to}-${transition.symbol}`,
       source: String(transition.from),
       target: String(transition.to),
-      data: { symbols: [transition.symbol], label: transition.symbol, isEpsilon: false },
+      data: { symbols: [transition.symbol], label: transition.symbol },
     });
   }
 
@@ -61,7 +61,7 @@ export function adaptDfa(dfa: DFA, options: AdaptDfaOptions = {}): AdaptedGraph 
               id: `e${state.id}-${DEAD_STATE_ID}-${symbol}`,
               source: String(state.id),
               target: String(DEAD_STATE_ID),
-              data: { symbols: [symbol], label: symbol, isEpsilon: false },
+              data: { symbols: [symbol], label: symbol },
             });
         }
       for (const symbol of dfa.alphabet)
@@ -69,7 +69,7 @@ export function adaptDfa(dfa: DFA, options: AdaptDfaOptions = {}): AdaptedGraph 
           id: `e${DEAD_STATE_ID}-${DEAD_STATE_ID}-${symbol}`,
           source: String(DEAD_STATE_ID),
           target: String(DEAD_STATE_ID),
-          data: { symbols: [symbol], label: symbol, isEpsilon: false },
+          data: { symbols: [symbol], label: symbol },
         });
     }
   }

@@ -1,7 +1,6 @@
 /**
  * Shown before the user has compiled anything.
  *
- * OWNER: Person 3.
  */
 
 import type { ReactNode } from 'react';

@@ -1,7 +1,6 @@
 /**
  * PUBLIC COMPONENT — renders a DFA.
  *
- * OWNER: Person 2. Consumed by Person 3 as:
  *   <DfaGraph dfa={result.dfa} />
  *
  * A `null`/`undefined` automaton must render the empty state, never crash.

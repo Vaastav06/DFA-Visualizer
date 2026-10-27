@@ -1,7 +1,6 @@
 /**
  * Clickable list of example expressions.
  *
- * OWNER: Person 3.
  * Reads src/data/examples.ts — never hard-code expressions in this file.
  */
 

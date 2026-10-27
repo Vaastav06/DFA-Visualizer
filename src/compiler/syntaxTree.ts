@@ -1,7 +1,6 @@
 /**
  * Stage 5a - Syntax Tree Construction & Augmentation.
  *
- * OWNER: Person 1.
  * CONTRACT: constructs an explicit abstract syntax tree from postfix tokens,
  * augmented with the unique end-marker `#`:
  *   CONCAT(r, #)

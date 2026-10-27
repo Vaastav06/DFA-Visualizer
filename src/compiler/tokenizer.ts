@@ -1,7 +1,6 @@
 /**
  * Stage 2 - Tokenization.
  *
- * OWNER: Person 1.
  * CONTRACT: `tokenize(regex)` returns one token per meaningful character, in
  * source order. With the current single-character-literal specification a token
  * is always a one-character string: a literal, or one of `| * ( )`.

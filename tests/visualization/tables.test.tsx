@@ -2,7 +2,6 @@
  * Tests for visualization tables and badges:
  * PositionBadge, PositionTable, AstAnalysisTable, FollowposTable, DfaPositionMapping.
  *
- * OWNER: Person 2.
  */
 
 import { describe, expect, it, vi } from 'vitest';

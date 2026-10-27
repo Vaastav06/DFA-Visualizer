@@ -1,7 +1,6 @@
 /**
  * Tests for deterministic BFS layered layout.
  *
- * OWNER: Person 2.
  */
 
 import { describe, expect, it } from 'vitest';

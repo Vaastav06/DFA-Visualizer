@@ -1,7 +1,6 @@
 /**
  * A single DFA automaton state.
  *
- * OWNER: Person 2.
  * Custom node for React Flow with connection handles, start/accept indicators,
  * syntax-tree position sets, and simulation highlighting.
  *

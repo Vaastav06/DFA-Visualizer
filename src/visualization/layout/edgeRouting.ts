@@ -1,7 +1,6 @@
 /**
  * Edge routing.
  *
- * OWNER: Person 2.
  *
  * CONTRACT: given state centres and the edges between them, return one routed
  * path (plus label position) per edge. Pure and deterministic: the same input

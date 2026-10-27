@@ -1,7 +1,6 @@
 /**
  * Shown while a compilation is in flight.
  *
- * OWNER: Person 3.
  */
 
 interface LoadingStateProps {

@@ -1,7 +1,6 @@
 /**
  * A single node in the syntax tree diagram.
  *
- * OWNER: Person 2.
  * Custom React Flow node displaying operators, symbols, leaf positions,
  * analysis tooltips (nullable, firstpos, lastpos), and a details card when
  * the node is selected.

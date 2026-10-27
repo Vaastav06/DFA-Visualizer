@@ -1,7 +1,6 @@
 /**
  * Stage 5b - Position Numbering.
  *
- * OWNER: Person 1.
  * CONTRACT: assigns unique, 1-based integer position numbers to every leaf
  * (symbol or end-marker) in the syntax tree using deterministic left-to-right
  * traversal.

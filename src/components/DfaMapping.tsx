@@ -1,7 +1,6 @@
 /**
  * Shows the syntax-tree position set that each DFA state represents.
  *
- * OWNER: Person 3.
  *
  * Reads `DFAState.positions` from the shared contract and renders rows like:
  *   q0   {1, 2, 3}   accepting

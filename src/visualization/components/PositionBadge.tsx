@@ -1,7 +1,6 @@
 /**
  * Reusable badge for displaying a syntax-tree leaf position.
  *
- * OWNER: Person 2.
  */
 
 interface PositionBadgeProps {

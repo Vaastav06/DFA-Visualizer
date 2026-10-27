@@ -127,7 +127,7 @@ docs/                architecture, contracts, and specifications
 | ----------- | ----------------------------- | -------------------------------------------------------------------------------------------------- |
 | Vaastav06   | Visualization & UI features   | `src/visualization/`, `src/pages/`, `src/components/`, `tests/visualization/`, `tests/components/` |
 | shrey1-1    | Styling & UI fixes            | `src/styles/`, theming, UI polish                                                                  |
-| Gip-Coder   | Compiler & documentation      | `src/compiler/`, `tests/compiler/`, `docs/`                                                        |
+| Gip-Coder / Vinayak | Compiler & documentation | `src/compiler/`, `tests/compiler/`, `docs/`                                                  |
 
 ## Documentation
 

@@ -1,5 +1,5 @@
 /**
- * SHARED DATA CONTRACT — owned jointly by Persons 1, 2 and 3.
+ * Shared data contract for direct regular-expression-to-DFA construction.
  *
  * This file is the single source of truth for every structure that crosses a
  * module boundary (compiler -> visualization, compiler -> UI, UI -> visualization).
@@ -7,17 +7,10 @@
  * CHANGING THIS FILE REQUIRES TEAM AGREEMENT.
  * Any change here must be mirrored in docs/DATA_CONTRACTS.md in the same commit.
  *
- * Two contracts are permanent and must never be worked around:
+ * State ids are non-negative integers. The UI may render id 0 as q0, but the
+ * stored id remains the number 0.
  *
- *   EPSILON CONTRACT   internally `null`, displayed as `ε`.
- *                      `transition.symbol === null` means epsilon. Never use
- *                      "ε", "epsilon", "E", "EPSILON" or "" as internal values.
- *
- *   STATE ID CONTRACT  state ids are plain non-negative integers (0, 1, 2, ...).
- *                      The UI may render them as `q0`, `q1`, ... but the data
- *                      stays numeric. Never store "q0" as an id.
- *
- * See docs/DATA_CONTRACTS.md and docs/DECISIONS.md.
+ * See docs/DATA_CONTRACTS.md.
  */
 
 /**
@@ -32,41 +25,11 @@ export type Symbol = string;
 /** Preferred, non-shadowing alias for {@link Symbol}. */
 export type AlphabetSymbol = Symbol;
 
-/** The internal representation of an epsilon (empty-string) transition. */
-export type Epsilon = null;
-
-/** The value used for epsilon everywhere inside the compiler. */
-export const EPSILON: Epsilon = null;
-
-/** The glyph used to display epsilon in the UI and in graphs. Never stored as data. */
-export const EPSILON_DISPLAY = 'ε';
-
-/**
- * A directed, labelled edge between two states.
- * `symbol === null` is an epsilon transition (NFA only — a DFA has none).
- */
+/** A directed, symbol-labelled DFA transition. */
 export interface Transition {
   from: number;
   to: number;
-  symbol: string | null;
-}
-
-/**
- * A non-deterministic finite automaton with epsilon transitions
- * (the output of Thompson's construction).
- *
- * Invariants:
- *  - `startState` is in `states`
- *  - every id in `acceptStates` is in `states`
- *  - every `from`/`to` in `transitions` is in `states`
- *  - `alphabet` never contains `null` — epsilon is not part of the alphabet
- */
-export interface NFA {
-  states: number[];
-  alphabet: string[];
-  startState: number;
-  acceptStates: number[];
-  transitions: Transition[];
+  symbol: string;
 }
 
 /**
@@ -135,11 +98,6 @@ export interface DFAState {
   id: number;
   /** Authoritative syntax-tree leaf positions represented by this DFA state. */
   positions: number[];
-  /**
-   * @deprecated
-   * Legacy compatibility alias. Must always equal `positions`.
-   */
-  nfaStates?: number[];
   isAccepting: boolean;
 }
 
@@ -147,7 +105,6 @@ export interface DFAState {
  * A deterministic finite automaton.
  *
  * Invariants:
- *  - `transitions` contains no epsilon (`symbol` is never `null`)
  *  - for each state and each symbol of `alphabet` there is at most one
  *    transition (partial DFA: missing transition means reject)
  *  - `acceptStates` agrees with `states[i].isAccepting`
@@ -169,9 +126,7 @@ export type CompilationStepId =
   | 'syntaxTree'
   | 'followpos'
   | 'dfa'
-  | 'minimized'
-  | 'simulation'
-  | 'nfa';
+  | 'simulation';
 
 /**
  * A human-readable description of one pipeline stage, produced by the compiler
@@ -206,16 +161,8 @@ export interface CompilationResult {
   followpos: FollowPosEntry[];
   /** DFA directly constructed from syntax tree position sets. */
   dfa: DFA;
-  /** DFA after minimization. */
-  minimizedDfa: DFA;
   /** Ordered explanations of each stage, for the UI's step navigation. */
   steps: CompilationStep[];
-  /**
-   * @deprecated
-   * Legacy NFA field retained for fixture compatibility.
-   * Not produced by direct RE -> DFA compilation.
-   */
-  nfa?: NFA;
 }
 
 /* ------------------------------------------------------------------ */

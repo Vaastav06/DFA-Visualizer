@@ -22,7 +22,7 @@ export type StateNodeType = Node<StateNodeData, 'state'>;
 export function StateNode({ data, selected }: NodeProps<StateNodeType>) {
   const isSelected = Boolean(data.isSelected || selected);
   const isDead = Boolean(data.isDeadState || data.stateId === DEAD_STATE_ID);
-  const posList = data.positions ?? data.nfaStates ?? [];
+  const posList = data.positions ?? [];
   const posString = isDead ? '∅' : posList.length > 0 ? `{${posList.join(',')}}` : '';
 
   const classNames = [

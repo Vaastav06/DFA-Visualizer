@@ -310,7 +310,7 @@ export function StringSimulator({ dfa }: StringSimulatorProps) {
           <div className="simulator__graph">
             <DfaGraph
               dfa={dfa}
-              kind="minimized-dfa"
+              kind="dfa"
               highlight={highlight}
               activeStateId={activeStateId}
               showDeadState={showDeadState}
@@ -322,7 +322,7 @@ export function StringSimulator({ dfa }: StringSimulatorProps) {
 
       {!result && (
         <div className="simulator__graph">
-          <DfaGraph dfa={dfa} kind="minimized-dfa" showDeadState={showDeadState} height={360} />
+          <DfaGraph dfa={dfa} kind="dfa" showDeadState={showDeadState} height={360} />
         </div>
       )}
     </section>

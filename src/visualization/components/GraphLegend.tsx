@@ -57,37 +57,22 @@ export function GraphLegend({ kind }: GraphLegendProps) {
         <span className="graph-legend__swatch graph-legend__swatch--accepting" aria-hidden="true" />
         accepting state (double border)
       </li>
-      {kind === 'nfa' ? (
-        <li>
-          <span className="graph-legend__swatch graph-legend__swatch--epsilon" aria-hidden="true" />
-          ε-transition (dashed)
-        </li>
-      ) : (
-        <>
-          <li>
-            <span
-              className="graph-legend__swatch graph-legend__swatch--positions"
-              aria-hidden="true"
-            >
-              {'{…}'}
-            </span>
-            leaf position set
-          </li>
-          <li>
-            <span
-              className="graph-legend__swatch graph-legend__swatch--active"
-              aria-hidden="true"
-            />
-            active / highlighted
-          </li>
-          <li>
-            <span className="graph-legend__swatch graph-legend__swatch--dead" aria-hidden="true">
-              qd
-            </span>
-            dead / trap state
-          </li>
-        </>
-      )}
+      <li>
+        <span className="graph-legend__swatch graph-legend__swatch--positions" aria-hidden="true">
+          {'{…}'}
+        </span>
+        leaf position set
+      </li>
+      <li>
+        <span className="graph-legend__swatch graph-legend__swatch--active" aria-hidden="true" />
+        active / highlighted
+      </li>
+      <li>
+        <span className="graph-legend__swatch graph-legend__swatch--dead" aria-hidden="true">
+          qd
+        </span>
+        implicit sink for missing transitions
+      </li>
     </ul>
   );
 }

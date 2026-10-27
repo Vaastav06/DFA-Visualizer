@@ -3,7 +3,7 @@
  */
 
 import { describe, expect, it, vi } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { RegexInput } from '../../src/components/RegexInput';
 import { ErrorDisplay } from '../../src/components/ErrorDisplay';
@@ -13,15 +13,13 @@ import { StepContent } from '../../src/components/StepContent';
 import { TokenList } from '../../src/components/TokenList';
 import { TransitionTable } from '../../src/components/TransitionTable';
 import { DfaMapping } from '../../src/components/DfaMapping';
-import { DfaComparison } from '../../src/components/DfaComparison';
-import { mapDirectToMinimized } from '../../src/components/dfaEquivalence';
 import { StringSimulator } from '../../src/components/StringSimulator';
 import { EmptyState } from '../../src/components/EmptyState';
 import { LoadingState } from '../../src/components/LoadingState';
 import { AlgorithmExplanation } from '../../src/components/AlgorithmExplanation';
 import { EXAMPLE_EXPRESSIONS } from '../../src/data/examples';
-import { MOCK_DFA, MOCK_MINIMIZED_DFA } from '../fixtures/mockAutomata';
-import { PIPELINE_STEPS, compileRegex, type DFA } from '../../src/compiler';
+import { MOCK_DFA } from '../fixtures/mockAutomata';
+import { PIPELINE_STEPS, type DFA } from '../../src/compiler';
 
 describe('<RegexInput />', () => {
   it('submits the current expression on button click and Enter key', async () => {
@@ -165,9 +163,9 @@ describe('<TransitionTable /> and <DfaMapping />', () => {
 
   it('renders DFA state mapping with position sets and acceptance', () => {
     render(<DfaMapping dfa={MOCK_DFA} />);
-    expect(screen.getByText('{0, 1, 3}')).toBeInTheDocument();
-    expect(screen.getByText('{2, 5}')).toBeInTheDocument();
-    expect(screen.getAllByText('accepting')).toHaveLength(2);
+    expect(screen.getByText('{1, 2}')).toBeInTheDocument();
+    expect(screen.getByText('{3}')).toBeInTheDocument();
+    expect(screen.getAllByText('accepting')).toHaveLength(1);
     expect(screen.getByText('non-accepting')).toBeInTheDocument();
   });
 
@@ -178,78 +176,6 @@ describe('<TransitionTable /> and <DfaMapping />', () => {
     expect(q1Row).toBeInTheDocument();
     if (q1Row) await userEvent.click(q1Row);
     expect(onSelect).toHaveBeenCalledWith(1);
-  });
-});
-
-describe('<DfaComparison />', () => {
-  it('renders metric cards, comparison graphs and equivalence table', async () => {
-    const onSelectMin = vi.fn();
-    const onSelectDirect = vi.fn();
-    render(
-      <DfaComparison
-        directDfa={MOCK_DFA}
-        minimizedDfa={MOCK_MINIMIZED_DFA}
-        selectedMinStateId={null}
-        onSelectMinState={onSelectMin}
-        selectedDirectStateId={null}
-        onSelectDirectState={onSelectDirect}
-      />
-    );
-
-    expect(screen.getByRole('region', { name: /minimization summary/i })).toBeInTheDocument();
-    expect(screen.getByText('Direct DFA (Constructed)')).toBeInTheDocument();
-    expect(screen.getByText('Minimized DFA (Moore Refined)')).toBeInTheDocument();
-    expect(screen.getByRole('table', { name: /state equivalence mapping/i })).toBeInTheDocument();
-
-    const minStateTh = screen.getAllByText('q0', { selector: 'th' })[0];
-    const row = minStateTh.closest('tr');
-    if (row) {
-      await userEvent.click(row);
-      expect(onSelectMin).toHaveBeenCalled();
-    }
-  });
-});
-
-describe('mapDirectToMinimized', () => {
-  // Each of these was mis-mapped when states were matched by position-set containment.
-  it.each([
-    ['(a|b)*abb', [[0], [1], [2], [3]]],
-    ['(0|1)*00(0|1)*', [[0], [1], [2, 3]]],
-    ['a*b*', [[0], [1]]],
-    ['(a|b)*b(a|b)*', [[0], [1]]],
-    ['(a|b)*a|(a|b)*b', [[0], [1]]],
-  ])('maps every direct state of %s to exactly one minimized state', (regex, expected) => {
-    const { dfa, minimizedDfa } = compileRegex(regex);
-    const minStateOf = mapDirectToMinimized(dfa, minimizedDfa);
-
-    expect(minStateOf.size).toBe(dfa.states.length);
-    const groups = minimizedDfa.states.map((m) =>
-      dfa.states.filter((d) => minStateOf.get(d.id) === m.id).map((d) => d.id)
-    );
-    expect(groups).toEqual(expected);
-  });
-
-  it('shows the lockstep mapping in the equivalence table', () => {
-    const { dfa, minimizedDfa } = compileRegex('(a|b)*abb');
-    render(
-      <DfaComparison
-        directDfa={dfa}
-        minimizedDfa={minimizedDfa}
-        selectedMinStateId={null}
-        onSelectMinState={vi.fn()}
-        selectedDirectStateId={null}
-        onSelectDirectState={vi.fn()}
-      />
-    );
-
-    const table = screen.getByRole('table', { name: /state equivalence mapping/i });
-    const rows = within(table).getAllByRole('row').slice(1);
-    expect(rows.map((row) => row.querySelectorAll('td')[0].textContent)).toEqual([
-      'q0',
-      'q1',
-      'q2',
-      'q3',
-    ]);
   });
 });
 

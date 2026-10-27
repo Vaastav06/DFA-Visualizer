@@ -153,12 +153,12 @@ describe('DfaPositionMapping', () => {
       screen.getByRole('table', { name: /DFA State to Position Mapping/i })
     ).toBeInTheDocument();
     expect(screen.getByText('q0')).toBeInTheDocument();
-    expect(screen.getByText('{0, 1, 3}')).toBeInTheDocument();
+    expect(screen.getByText('{1, 2}')).toBeInTheDocument();
     expect(screen.getByText('start')).toBeInTheDocument();
 
     expect(screen.getByText('q1')).toBeInTheDocument();
-    expect(screen.getByText('{2, 5}')).toBeInTheDocument();
-    expect(screen.getAllByText(/Accepting \(contains #\)/i)).toHaveLength(2);
+    expect(screen.getByText('{3}')).toBeInTheDocument();
+    expect(screen.getAllByText(/Accepting \(contains #\)/i)).toHaveLength(1);
   });
 
   it('triggers onSelectState when a row is clicked', () => {

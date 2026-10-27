@@ -75,16 +75,7 @@ describe('application shell & complete user journey', () => {
     expect(screen.getByRole('table', { name: /DFA transition table/i })).toBeInTheDocument();
     expect(screen.getByRole('table', { name: /DFA state mapping/i })).toBeInTheDocument();
 
-    // 8. View Minimized DFA
-    await userEvent.click(screen.getByRole('tab', { name: /Minimized DFA/i }));
-    expect(
-      screen.getByRole('figure', { name: /MINIMIZED-DFA state transition graph/i })
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('table', { name: /Minimized DFA transition table/i })
-    ).toBeInTheDocument();
-
-    // 9. Run String Simulation (Accept & Reject)
+    // 8. Run String Simulation (Accept & Reject)
     await userEvent.click(screen.getByRole('tab', { name: /String Simulation/i }));
     const simInput = screen.getByLabelText(/input string/i);
     await userEvent.type(simInput, 'abb');
@@ -96,7 +87,7 @@ describe('application shell & complete user journey', () => {
     await userEvent.click(screen.getByRole('button', { name: /^run$/i }));
     expect(screen.getByText(/✗ REJECTED/i)).toBeInTheDocument();
 
-    // 10. Clicking an example expression immediately compiles and updates the view
+    // 9. Clicking an example expression immediately compiles and updates the view
     await userEvent.click(screen.getByRole('button', { name: 'a*' }));
     expect(input).toHaveValue('a*');
     // Stale simulation result should be cleared when DFA changes

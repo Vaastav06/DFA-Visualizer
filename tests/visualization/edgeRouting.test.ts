@@ -281,7 +281,7 @@ describe('routeEdges — determinism and completeness', () => {
   });
 });
 
-describe('routeEdges — compiled DFAs (direct and minimized)', () => {
+describe('routeEdges — compiled direct DFAs', () => {
   const expressions = [
     '(a|b)*abb',
     '(a|b)*a(a|b)(a|b)',
@@ -294,76 +294,70 @@ describe('routeEdges — compiled DFAs (direct and minimized)', () => {
 
   for (const regex of expressions) {
     const compiled = compileRegex(regex);
-    for (const [kind, dfa] of [
-      ['direct', compiled.dfa],
-      ['minimized', compiled.minimizedDfa],
-    ] as const) {
-      it(`${regex} (${kind}): every transition is routed, directed and readable`, () => {
-        const { graph, nodes, edges, result } = routeDfa(dfa);
+    const dfa = compiled.dfa;
+    it(`${regex}: every transition is routed, directed and readable`, () => {
+      const { graph, nodes, edges, result } = routeDfa(dfa);
 
-        // Adapter: one edge per transition, no duplicates.
-        expect(graph.edges.length).toBe(dfa.transitions.length);
-        expect(new Set(graph.edges.map((e) => e.id)).size).toBe(graph.edges.length);
-        expect(result.routes.size).toBe(edges.length);
+      // Adapter: one edge per transition, no duplicates.
+      expect(graph.edges.length).toBe(dfa.transitions.length);
+      expect(new Set(graph.edges.map((e) => e.id)).size).toBe(graph.edges.length);
+      expect(result.routes.size).toBe(edges.length);
 
-        const byId = new Map(nodes.map((n) => [n.id, n]));
-        const placedBoxes: { id: string; box: ReturnType<typeof labelBox> }[] = [];
+      const byId = new Map(nodes.map((n) => [n.id, n]));
+      const placedBoxes: { id: string; box: ReturnType<typeof labelBox> }[] = [];
 
-        for (const e of edges) {
-          const route = result.routes.get(e.id)!;
-          const [start, , , end] = route.points;
-          // Direction preserved: starts at source, arrow ends at target.
-          expect(dist(start, byId.get(e.source)!)).toBeLessThan(R + 3);
-          expect(dist(end, byId.get(e.target)!)).toBeLessThan(R + 3);
+      for (const e of edges) {
+        const route = result.routes.get(e.id)!;
+        const [start, , , end] = route.points;
+        // Direction preserved: starts at source, arrow ends at target.
+        expect(dist(start, byId.get(e.source)!)).toBeLessThan(R + 3);
+        expect(dist(end, byId.get(e.target)!)).toBeLessThan(R + 3);
 
-          // Path never passes through an unrelated state.
-          for (const p of sampleRoute(route, 48)) {
-            for (const n of nodes) {
-              if (n.id === e.source || n.id === e.target) continue;
-              expect(dist(p, n)).toBeGreaterThan(R);
-            }
-          }
-
-          // Label never sits on top of a state.
-          const box = labelBox(route, e.label);
+        // Path never passes through an unrelated state.
+        for (const p of sampleRoute(route, 48)) {
           for (const n of nodes) {
-            const nx = Math.max(box.x, Math.min(n.x, box.x + box.width));
-            const ny = Math.max(box.y, Math.min(n.y, box.y + box.height));
-            expect(Math.hypot(n.x - nx, n.y - ny)).toBeGreaterThan(R - 1);
-          }
-          placedBoxes.push({ id: e.id, box });
-        }
-
-        // No two labels stacked on each other.
-        for (let i = 0; i < placedBoxes.length; i += 1) {
-          for (let j = i + 1; j < placedBoxes.length; j += 1) {
-            expect(
-              boxesOverlap(placedBoxes[i].box, placedBoxes[j].box),
-              `${placedBoxes[i].id} vs ${placedBoxes[j].id}`
-            ).toBe(false);
+            if (n.id === e.source || n.id === e.target) continue;
+            expect(dist(p, n)).toBeGreaterThan(R);
           }
         }
 
-        // Opposite-direction pairs never share a path.
-        for (const a of edges) {
-          for (const b of edges) {
-            if (a.id < b.id && a.source === b.target && a.target === b.source) {
-              expect(result.routes.get(a.id)!.path).not.toBe(result.routes.get(b.id)!.path);
-            }
+        // Label never sits on top of a state.
+        const box = labelBox(route, e.label);
+        for (const n of nodes) {
+          const nx = Math.max(box.x, Math.min(n.x, box.x + box.width));
+          const ny = Math.max(box.y, Math.min(n.y, box.y + box.height));
+          expect(Math.hypot(n.x - nx, n.y - ny)).toBeGreaterThan(R - 1);
+        }
+        placedBoxes.push({ id: e.id, box });
+      }
+
+      // No two labels stacked on each other.
+      for (let i = 0; i < placedBoxes.length; i += 1) {
+        for (let j = i + 1; j < placedBoxes.length; j += 1) {
+          expect(
+            boxesOverlap(placedBoxes[i].box, placedBoxes[j].box),
+            `${placedBoxes[i].id} vs ${placedBoxes[j].id}`
+          ).toBe(false);
+        }
+      }
+
+      // Opposite-direction pairs never share a path.
+      for (const a of edges) {
+        for (const b of edges) {
+          if (a.id < b.id && a.source === b.target && a.target === b.source) {
+            expect(result.routes.get(a.id)!.path).not.toBe(result.routes.get(b.id)!.path);
           }
         }
-      });
-    }
+      }
+    });
   }
 
-  it('routes the direct and minimized DFA independently from their own states', () => {
+  it('routes every transition of the direct DFA', () => {
     const compiled = compileRegex('(a|b)*abb');
     const direct = routeDfa(compiled.dfa).result;
-    const minimized = routeDfa(compiled.minimizedDfa).result;
-    for (const e of adaptDfa(compiled.minimizedDfa).edges) {
-      expect(minimized.routes.has(e.id)).toBe(true);
+    for (const edge of adaptDfa(compiled.dfa).edges) {
+      expect(direct.routes.has(edge.id)).toBe(true);
     }
-    expect(minimized.routes.size).toBe(compiled.minimizedDfa.transitions.length);
     expect(direct.routes.size).toBe(compiled.dfa.transitions.length);
   });
 });

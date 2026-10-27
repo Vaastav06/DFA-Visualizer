@@ -1,287 +1,43 @@
-# DFA Visualizer
+# Direct Regular Expression to DFA Visualizer
 
-An interactive educational web application that demonstrates the **direct construction of a Deterministic Finite Automaton (DFA) from a regular expression**, exposing every intermediate compilation stage rather than just the final automaton.
+An interactive teaching tool for the **direct regular-expression-to-DFA construction** from the Dragon Book (Algorithm 3.36). Enter a supported regular expression to inspect its syntax tree, position analysis, `followpos` table, directly constructed DFA, and a trace of an input string.
 
-Built as a Compiler Design course project. Instead of treating regular expression conversion as a black box, this visualizer implements and displays every step of the classical **Dragon Book direct method (Algorithm 3.36)** — from tokenization and augmented syntax trees through `followpos` calculation, direct DFA state discovery, Moore partition minimization, and interactive string simulation.
+The compiler constructs the DFA directly from syntax-tree leaf positions. It does not build an intermediate automaton.
 
----
+## Walkthrough
 
-## Table of Contents
+The default example `(a|b)*abb` passes through these stages:
 
-- [What It Does](#what-it-does)
-- [The End-to-End Compiler Pipeline](#the-end-to-end-compiler-pipeline)
-- [Worked Example: `(a|b)*abb`](#worked-example-ababb)
-- [Visualization & Interactive Features](#visualization--interactive-features)
-- [Supported Syntax & Error Handling](#supported-syntax--error-handling)
-- [System Architecture](#system-architecture)
-- [Project Structure](#project-structure)
-- [Team & Contributions](#team--contributions)
-- [Technology Stack](#technology-stack)
-- [Getting Started](#getting-started)
-- [Available Scripts](#available-scripts)
-- [Documentation Index](#documentation-index)
+1. Validate and tokenize the expression.
+2. Insert explicit concatenation operators and convert to postfix notation.
+3. Build the syntax tree for the augmented expression `(r)#` and number its leaves from left to right.
+4. Compute `nullable`, `firstpos`, and `lastpos` for each syntax-tree node.
+5. Compute `followpos` for every leaf position.
+6. Construct DFA states as sets of positions, starting with `firstpos(root)`. Transitions use the `followpos` sets of positions carrying the input symbol. A state is accepting when it contains the position of `#`.
+7. Inspect the constructed DFA and simulate strings through it.
 
----
+The method and worked example are described in [docs/COMPILER_PIPELINE.md](docs/COMPILER_PIPELINE.md). Supported input syntax is listed in [docs/REGEX_SPECIFICATION.md](docs/REGEX_SPECIFICATION.md).
 
-## What It Does
+## Run locally
 
-When converting a regular expression to an automaton, traditional tools produce only a final state graph or an acceptance verdict. DFA Visualizer renders each phase of the compilation process into a dedicated, inspectable view with synchronized tables, syntax trees, and interactive state diagrams:
+Requires Node.js 20.19+ or 22.12+.
 
-```text
-Regular Expression: (a|b)*abb
-   │
-   ├─► 1. Tokenization              ( a | b ) * a b b
-   ├─► 2. Explicit Concatenation    ( a | b ) * . a . b . b
-   ├─► 3. Postfix Conversion        a b | * a . b . b .
-   ├─► 4. Augmented Syntax Tree     (r)# tree with leaf positions 1..6
-   ├─► 5. Node Analysis             nullable, firstpos, and lastpos computed per node
-   ├─► 6. Followpos Table           followpos sets calculated for every leaf position
-   ├─► 7. Direct DFA Construction   canonical position-subset states and transitions
-   ├─► 8. Minimized DFA             Moore partition refinement with dead state handling
-   └─► 9. String Simulation         character-by-character execution trace and graph traversal
-```
-
-The application uses direct AST-to-DFA construction — it deliberately avoids intermediate Thompson $\varepsilon$-NFA conversion and powerset subset construction to showcase position-set algebra directly.
-
----
-
-## The End-to-End Compiler Pipeline
-
-The compilation core runs 11 sequential, deterministic stages encapsulated in `compileRegex`:
-
-| Stage | Module | Input → Output | Description & Invariant |
-| --- | --- | --- | --- |
-| **1. Validation** | `validator.ts` | `string` → valid or throws | Validates bracket matching, operator placement, and character whitelist before processing. |
-| **2. Tokenization** | `tokenizer.ts` | `string` → `string[]` | Strips extraneous whitespace and breaks the expression into distinct tokens. |
-| **3. Explicit Concatenation** | `explicitConcatenation.ts` | `string[]` → `string[]` | Inserts the internal concatenation operator `.` between adjacent operands, grouping brackets, and stars. |
-| **4. Postfix Conversion** | `infixToPostfix.ts` | Infix tokens → Postfix tokens | Uses Dijkstra's Shunting-yard algorithm with precedence: Kleene star `*` > Concatenation `.` > Alternation `\|`. |
-| **5. Augmented Syntax Tree** | `syntaxTree.ts` | Postfix tokens → `SyntaxNode` | Constructs an AST and augments it by concatenating the distinguished end-marker leaf `#`. |
-| **6. Position Numbering** | `positions.ts` | `SyntaxNode` → Position Table | Assigns deterministic 1-based indices (left-to-right) to all alphabet leaves and the `#` marker. |
-| **7. AST Property Analysis** | `nullable.ts`, `firstpos.ts`, `lastpos.ts` | `SyntaxNode` → Node Annotations | Calculates: <br>• **`nullable`**: whether a subtree derives the empty word $\varepsilon$.<br>• **`firstpos`**: set of initial leaf positions in matches generated by the subtree.<br>• **`lastpos`**: set of final leaf positions in matches generated by the subtree. |
-| **8. Followpos Construction** | `followpos.ts` | Annotated AST → `FollowposTable` | Finds which positions may immediately follow position $p$ in any valid match: <br>• For concat $A \cdot B$, all $i \in \text{lastpos}(A)$ can be followed by all $j \in \text{firstpos}(B)$.<br>• For star $A^*$, all $i \in \text{lastpos}(A)$ can be followed by all $j \in \text{firstpos}(A)$. |
-| **9. Direct DFA Construction** | `directDfa.ts` | `followpos` + Root → `DFA` | Starts with $q_0 = \text{firstpos}(\text{root})$. For each unmarked state $S$ and symbol $a$, transitions to the union of $\text{followpos}(p)$ for all $p \in S$ labeled $a$. Interns canonical sorted position sets. Accepts when `#` is in $S$. |
-| **10. DFA Minimization** | `minimizeDfa.ts` | `DFA` → Minimized `DFA` | Removes unreachable and dead states, then applies Moore-style partition refinement while preserving partial DFA semantics. |
-| **11. String Simulation** | `simulator.ts` | `DFA` + input string → `SimulationResult` | Consumes input symbols character-by-character, capturing step-by-step state visits, transition routes, and final accept/reject verdicts. |
-
----
-
-## Worked Example: `(a|b)*abb`
-
-Matches any string over alphabet $\{a, b\}$ ending with `abb`.
-
-### 1. Augmented AST Leaves & Positions
-- Leaf `1`: `a`
-- Leaf `2`: `b`
-- Leaf `3`: `a`
-- Leaf `4`: `b`
-- Leaf `5`: `b`
-- Leaf `6`: `#` (End-marker)
-
-Root $\text{firstpos} = \{1, 2, 3\}$, Root $\text{lastpos} = \{6\}$.
-
-### 2. Followpos Table
-| Position | Symbol | Followpos Set |
-| :---: | :---: | :--- |
-| **1** | `a` | $\{1, 2, 3\}$ |
-| **2** | `b` | $\{1, 2, 3\}$ |
-| **3** | `a` | $\{4\}$ |
-| **4** | `b` | $\{5\}$ |
-| **5** | `b` | $\{6\}$ |
-| **6** | `#` | $\emptyset$ |
-
-### 3. Resulting DFA States & Transitions
-- **$q_0$ (Start)**: $\{1, 2, 3\}$
-- **$q_1$**: $\{1, 2, 3, 4\}$
-- **$q_2$**: $\{1, 2, 3, 5\}$
-- **$q_3$ (Accepting)**: $\{1, 2, 3, 6\}$ *(contains end-marker 6)*
-
-| State | On Symbol `a` | On Symbol `b` | Accepting? |
-| :---: | :---: | :---: | :---: |
-| **$q_0$** | $q_1$ | $q_0$ | No |
-| **$q_1$** | $q_1$ | $q_2$ | No |
-| **$q_2$** | $q_1$ | $q_3$ | No |
-| **$q_3$** | $q_1$ | $q_0$ | **Yes** |
-
-*(Already minimal — 4 states maintained after minimization.)*
-
----
-
-## Visualization & Interactive Features
-
-- **Interactive Graph Canvas**: Rendered with `@xyflow/react` (React Flow 12) featuring custom nodes (`StateNode`) with concentric accepting rings and custom edges (`TransitionEdge`) with Bézier routing and offset separation for parallel transitions.
-- **Deterministic BFS Layered Layout**: Automata are positioned predictably using a deterministic breadth-first layering algorithm that ensures consistent layouts across compiles.
-- **Visual Dead / Trap State (`q_d`)**: While the theoretical engine preserves partial DFA semantics (missing transitions imply rejection without bloating state tables), the visualizer renders an optional virtual dead state `qd` with dashed boundaries and incoming rejection arrows for transparent learning.
-- **Interactive Step Navigation**: Users can browse every compiler stage with tabs, reviewing position tables, AST analyses, followpos matrices, and transition maps.
-- **String Simulation & Auto-Advance**: Test candidate strings with manual step controls (Prev/Next/Reset) or dynamic auto-advance playback with configurable speed. The graph lights up active states and animates active transition pulses.
-- **Side-by-Side DFA Comparison**: Inspect Direct DFA vs. Minimized DFA in a dual-pane view with state mapping highlighting to understand state equivalence and merging.
-- **High-Resolution Diagram Export**: One-click PNG/JPEG diagram export with crisp vector-quality scaling and complete transition arrowheads.
-- **Multiple Visual Themes**: Hand-crafted themes including high-contrast dark mode and comfortable warm palettes (such as *Paper Blue* and *Frontier Outlaw*).
-
----
-
-## Supported Syntax & Error Handling
-
-| Token / Operator | Description | Precedence | Example |
-| :---: | :--- | :---: | :--- |
-| `a-z`, `A-Z`, `0-9` | Alphanumeric single-character literals | N/A | `a`, `1` |
-| `(...)` | Parenthetical subexpression grouping | 1 (Highest) | `(a\|b)` |
-| `*` | Postfix Kleene star (0 or more repetitions) | 2 | `a*`, `(ab)*` |
-| Implicit Concatenation | Juxtaposition of characters/groups | 3 | `ab` $\rightarrow$ `a.b` |
-| `\|` | Alternation (Union / OR) | 4 (Lowest) | `a\|b` |
-
-### Deliberate Non-Features
-- `+` (one-or-more) and `?` (optional) are omitted to focus on primitive regular algebra.
-- `.` (dot) is reserved internally for explicit concatenation and is rejected if entered as a literal.
-- Character classes (`[...]`), escapes (`\`), anchors (`^`, `$`), and backreferences are unsupported.
-
-### Error Handling
-The validator detects and flags errors before compilation begins, reporting the exact character offset:
-- Empty expressions or empty parenthetical groups `()`
-- Unbalanced parentheses `(a|b`
-- Malformed operator positions `*a`, `a|`, `a||b`
-- Disallowed symbols and whitespace-only inputs
-
----
-
-## System Architecture
-
-The application enforces a strict unidirectional three-tier architecture with clean module boundaries:
-
-```
-┌────────────────────────────────────────────────────────┐
-│                   UI / Application                     │
-│  HomePage • AppContext • useCompiler • StepNavigation   │
-│  StringSimulator • PositionTable • TransitionTable     │
-└──────────────────────────┬─────────────────────────────┘
-                           │ Consumes CompilationResult
-              ┌────────────┴─────────────┐
-              ▼                          ▼
-┌───────────────────────────┐  ┌─────────────────────────┐
-│       Compiler Core       │  │   Visualization Layer   │
-│  Pure TypeScript          │  │  React Flow Graphs      │
-│  Zero React / Zero DOM    │  │  No compiler calls      │
-│  11-stage pipeline        │  │  Adapters, BFS layout,  │
-│  Deterministic algorithms │  │  custom nodes & edges   │
-└───────────────────────────┘  └─────────────────────────┘
-```
-
-- **Compiler Isolation**: Pure TypeScript without React or DOM dependencies. Fully testable in headless node environments.
-- **Visualization Independence**: Adapts data contracts into React Flow nodes and edges without mutating compiler states.
-- **Strict Contracts**: All data interchange is governed by canonical types declared in `src/compiler/types.ts`.
-
----
-
-## Project Structure
-
-```text
-├── src/
-│   ├── compiler/              # Pure TypeScript compilation engine
-│   │   ├── validator.ts       # Syntax validation & error reporting
-│   │   ├── tokenizer.ts       # Lexer and whitespace normalization
-│   │   ├── explicitConcatenation.ts # Infix '.' insertion
-│   │   ├── infixToPostfix.ts  # Shunting-yard postfix transformation
-│   │   ├── syntaxTree.ts      # AST generator with '#' end-marker
-│   │   ├── positions.ts       # Leaf position numbering
-│   │   ├── nullable.ts        # Nullable property computation
-│   │   ├── firstpos.ts        # Firstpos position set resolution
-│   │   ├── lastpos.ts         # Lastpos position set resolution
-│   │   ├── followpos.ts       # Followpos table builder
-│   │   ├── directDfa.ts       # Direct position-subset DFA construction
-│   │   ├── minimizeDfa.ts     # Moore partition refinement algorithm
-│   │   ├── simulator.ts       # Execution trace & step simulator
-│   │   └── types.ts           # Shared data contracts and types
-│   ├── visualization/         # Graph presentation layer
-│   │   ├── adapters/          # DFA/NFA to React Flow graph adapters
-│   │   ├── layout/            # Deterministic BFS layered & tree layout engines
-│   │   └── components/        # AutomataGraph, StateNode, TransitionEdge, DfaGraph
-│   ├── components/            # UI widgets, tables, controls, and simulator
-│   ├── pages/                 # HomePage and primary views
-│   ├── context/               # Application-level React Context
-│   ├── hooks/                 # useCompiler and custom hooks
-│   └── styles/                # CSS custom properties and theme tokens
-├── tests/
-│   ├── compiler/              # Unit tests for each pipeline stage & invariants
-│   ├── visualization/         # Adapter, layout determinism, and graph tests
-│   ├── components/            # Component interaction tests via Testing Library
-│   ├── integration/           # AppShell end-to-end integration tests
-│   └── fixtures/              # Mock automata fixtures
-└── docs/                      # Architectural specs, data contracts, and reports
-```
-
----
-
-## Team & Contributions
-
-This project was built collaboratively by four team members, with responsibilities spanning the architecture from mathematical compiler theory to interactive visualization and UX:
-
-| Team Member | Core Focus | Contributions & Ownership |
-| :--- | :--- | :--- |
-| **Gip-Coder** | Compiler Core & Algorithmic Foundation | • Architected the repository foundation and typed data contracts.<br>• Implemented the entire 11-stage direct compilation engine (`validator`, `tokenizer`, `syntaxTree`, `positions`, `firstpos`/`lastpos`, `followpos`, `directDfa`, `minimizeDfa`, `simulator`).<br>• Built algorithm verification suites, language equivalence tests, and textbook verification fixtures. |
-| **Vaastav06** | Visualization System & Interactive Features | • Designed the graph engine on `@xyflow/react` with custom SVG nodes, rings, and Bézier transition edges.<br>• Built the deterministic BFS layered graph layout and tree positioning engines.<br>• Implemented the virtual dead state (`qd`) representation, side-by-side DFA comparison, auto-advancing simulation engine, and high-res diagram exports. |
-| **Vinayak Nautiyal** | UI Architecture & Pipeline Integration | • Engineered the interactive application shell and wired UI components to the compiler via `useCompiler`.<br>• Built step navigation workflows, intermediate data tables (positions, followpos, transition matrices), and example selection.<br>• Authored contributor guides (`AGENTS.md`) and refined multi-stage inspection interfaces. |
-| **shrey1-1** | Design Systems, Theming & UI Polish | • Created adaptive color themes including the *Paper Blue* and *Frontier Outlaw* visual designs.<br>• Built CSS custom-property token systems for accessible contrast and readable diagrams.<br>• Resolved state-mapping bugs in the comparison view, improved step navigation UX, and polished interface responsiveness. |
-
----
-
-## Technology Stack
-
-- **Framework**: React 18.3 (`react`, `react-dom`)
-- **Language**: TypeScript 5.6 (Strict type-checking enabled)
-- **Build & Dev Tooling**: Vite 6
-- **Graph Visualization**: `@xyflow/react` 12 (React Flow)
-- **Automated Testing**: Vitest 3, React Testing Library, JSDOM
-- **Styling**: Plain CSS with custom property design tokens (Zero runtime CSS-in-JS, zero heavy utility frameworks)
-- **Quality Gates**: ESLint 9 (Flat config) and Prettier
-
----
-
-## Getting Started
-
-### Prerequisites
-Node.js `20.19+` or `22.12+` and `npm`.
-
-### Installation & Launch
 ```bash
-# 1. Clone the repository
-git clone https://github.com/Vaastav06/DFA-Visualizer.git
-cd DFA-Visualizer
-
-# 2. Install dependencies
 npm install
-
-# 3. Start the Vite development server
 npm run dev
 ```
 
-Open `http://localhost:5173` in your browser to explore the visualizer.
+Open the local URL printed by Vite. To check the project:
 
----
+```bash
+npm test
+npm run typecheck
+npm run build
+```
 
-## Available Scripts
+## Project layout
 
-| Command | Purpose |
-| :--- | :--- |
-| `npm run dev` | Launches the local dev server with hot module replacement. |
-| `npm run build` | Runs TypeScript project compilation and creates an optimized production bundle in `dist/`. |
-| `npm run preview` | Serves the production build locally for verification. |
-| `npm test` | Runs the full Vitest automated test suite once. |
-| `npm run test:watch` | Starts Vitest in interactive watch mode for TDD. |
-| `npm run typecheck` | Validates TypeScript types across the entire project (`tsc -b`). |
-| `npm run lint` | Runs ESLint 9 checks across all source files. |
-| `npm run format` | Applies Prettier formatting rules to source files. |
-| `npm run format:check` | Verifies code formatting compliance without modifying files. |
-
----
-
-## Documentation Index
-
-For in-depth specifications and design records, consult the `docs/` directory:
-
-- [**Architecture & Layer Boundaries**](docs/ARCHITECTURE.md): Module dependencies and data flow.
-- [**Compiler Pipeline Specification**](docs/COMPILER_PIPELINE.md): In-depth walkthrough of all 11 stages with type signatures.
-- [**Data Contracts & Types**](docs/DATA_CONTRACTS.md): Authoritative TypeScript contracts for trees and automata.
-- [**Regular Expression Specification**](docs/REGEX_SPECIFICATION.md): Formal grammar and parsing rules.
-- [**Visualization Specification**](docs/VISUALIZATION_SPEC.md): Graph adaptation, node styling, and layout behavior.
-- [**Testing Strategy**](docs/TESTING_STRATEGY.md): Unit, property-based, and component test coverage.
-- [**Architectural Decisions Log**](docs/DECISIONS.md): Key trade-offs, algorithms, and design choices.
-- [**Faculty Project Report**](docs/FACULTY_PROJECT_REPORT.md): Comprehensive academic project summary.
+- `src/compiler/` implements the direct construction stages and DFA simulator.
+- `src/visualization/` renders the augmented syntax tree and DFA position sets.
+- `src/components/` and `src/pages/` provide the interactive walkthrough.
+- `tests/` covers compiler stages, DFA behavior, and visual components.

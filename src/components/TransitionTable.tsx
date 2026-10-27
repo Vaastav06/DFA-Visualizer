@@ -13,7 +13,7 @@ import { DEAD_STATE_ID, formatStateId } from '../hooks/useCompiler';
 
 interface TransitionTableProps {
   dfa: DFA;
-  /** Optional caption, e.g. "Minimized DFA transition table". */
+  /** Optional caption for the DFA transition table. */
   caption?: string;
   selectedStateId?: number | null;
   onSelectState?: (stateId: number) => void;

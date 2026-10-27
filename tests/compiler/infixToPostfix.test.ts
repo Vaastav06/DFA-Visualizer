@@ -78,8 +78,7 @@ describe('parentheses override precedence and then disappear', () => {
 
 describe('associativity', () => {
   it('groups union to the left', () => {
-    // (a|b)|c, not a|(b|c) - both describe the same language, but the tree
-    // shape determines the NFA Thompson builds.
+    // (a|b)|c, not a|(b|c) - both describe the same language, but the tree shape is deterministic.
     expect(postfix('a|b|c')).toBe('ab|c|');
   });
 

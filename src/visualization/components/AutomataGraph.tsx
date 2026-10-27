@@ -20,7 +20,7 @@ import {
 } from '@xyflow/react';
 
 import type { AutomatonKind, GraphHighlight, StateNodeData } from '../types';
-import type { AdaptedGraph } from '../adapters/nfaAdapter';
+import type { AdaptedGraph } from '../adapters/graphTypes';
 import { layoutAutomaton } from '../layout/graphLayout';
 import { buildFlowEdges, routeGraph } from '../adapters/flowEdges';
 import { StateNode, type StateNodeType } from './StateNode';
@@ -55,7 +55,7 @@ interface AutomataGraphProps {
   highlight?: GraphHighlight;
   activeStateId?: number | null;
   highlightedStateIds?: number[];
-  highlightedTransition?: { from: number; to: number; symbol?: string | null } | null;
+  highlightedTransition?: { from: number; to: number; symbol?: string } | null;
   height?: number | string;
   className?: string;
   onStateClick?: (stateId: number, data: StateNodeData) => void;

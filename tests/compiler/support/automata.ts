@@ -1,14 +1,7 @@
-/**
- * Shared helpers for the compiler test suite.
- *
- * These exist so language-level tests can compare what the NFA accepts with
- * what the DFA and the minimized DFA accept. That comparison is the strongest
- * check in the suite: it catches subset-construction and minimization bugs
- * that structural assertions miss.
- */
+/** Shared helpers for direct-DFA compiler tests. */
 
 import { simulate } from '../../../src/compiler/simulator';
-import type { DFA, NFA } from '../../../src/compiler/types';
+import type { DFA } from '../../../src/compiler/types';
 
 /** Convenience wrapper so tests read the same way for both automaton kinds. */
 export function dfaAccepts(dfa: DFA, input: string): boolean {
@@ -35,33 +28,6 @@ export function allStringsUpTo(alphabet: string[], maxLength: number): string[] 
   return strings;
 }
 
-/** Throws unless every structural invariant in docs/DATA_CONTRACTS.md holds. */
-export function assertNfaInvariants(nfa: NFA): void {
-  const states = new Set(nfa.states);
-
-  if (!states.has(nfa.startState)) {
-    throw new Error(`start state ${nfa.startState} is not in states`);
-  }
-  for (const id of nfa.acceptStates) {
-    if (!states.has(id)) {
-      throw new Error(`accept state ${id} is not in states`);
-    }
-  }
-  for (const transition of nfa.transitions) {
-    if (!states.has(transition.from) || !states.has(transition.to)) {
-      throw new Error(`transition ${transition.from}->${transition.to} references a missing state`);
-    }
-    if (transition.symbol !== null && !nfa.alphabet.includes(transition.symbol)) {
-      throw new Error(`transition symbol ${transition.symbol} is not in the alphabet`);
-    }
-  }
-  for (const symbol of nfa.alphabet) {
-    if (symbol === null || '|*.()'.includes(symbol)) {
-      throw new Error(`alphabet contains the non-symbol ${JSON.stringify(symbol)}`);
-    }
-  }
-}
-
 /** Throws unless every structural invariant of a DFA holds. */
 export function assertDfaInvariants(dfa: DFA): void {
   const ids = dfa.states.map((state) => state.id);
@@ -85,9 +51,6 @@ export function assertDfaInvariants(dfa: DFA): void {
 
   const seen = new Set<string>();
   for (const transition of dfa.transitions) {
-    if (transition.symbol === null) {
-      throw new Error('a DFA must not contain epsilon transitions');
-    }
     if (!states.has(transition.from) || !states.has(transition.to)) {
       throw new Error(`transition ${transition.from}->${transition.to} references a missing state`);
     }

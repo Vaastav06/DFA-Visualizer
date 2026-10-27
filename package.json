@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Interactive Regular Expression to DFA Visualizer - Compiler Design team project",
+  "description": "Interactive visualizer for direct regular-expression-to-DFA construction (Dragon Book Algorithm 3.36)",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

@@ -31,7 +31,6 @@ export {
   constructDirectDFA as constructDirectDfa,
   positionSetKey,
 } from './directDfa';
-export { minimizeDfa, minimizeDfa as minimizeDFA } from './minimizeDfa';
 
 /* ---- string simulation ---- */
 export { simulate, simulateDFA } from './simulator';
@@ -47,7 +46,6 @@ export {
 export type { CompilerErrorCode } from './errors';
 
 /* ---- shared data contract ---- */
-export { EPSILON, EPSILON_DISPLAY } from './types';
 export type {
   AlphabetSymbol,
   CompilationResult,
@@ -55,9 +53,7 @@ export type {
   CompilationStepId,
   DFA,
   DFAState,
-  Epsilon,
   FollowPosEntry,
-  NFA,
   NodeAnalysis,
   PositionInfo,
   SimulationResult,

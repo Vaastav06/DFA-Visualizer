@@ -23,9 +23,6 @@ export { GraphControls } from './components/GraphControls';
 export { GraphLegend } from './components/GraphLegend';
 export { EmptyGraphState } from './components/EmptyGraphState';
 
-// Deprecated compatibility export
-export { NfaGraph } from './components/NfaGraph';
-
 // Table & Badge Components
 export { PositionBadge } from './components/PositionBadge';
 export { PositionTable } from './components/PositionTable';
@@ -40,7 +37,6 @@ export type {
   AutomataGraphBaseProps,
   DfaGraphProps,
   SyntaxTreeGraphProps,
-  NfaGraphProps,
   GraphHighlight,
   StateNodeData,
   SyntaxTreeNodeData,

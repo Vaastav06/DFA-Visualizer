@@ -49,7 +49,7 @@ export function DfaPositionMapping({
             const isSelected = selectedStateId === state.id;
             const isStart = state.id === dfa.startState;
             const isAccepting = state.isAccepting || acceptSet.has(state.id);
-            const positions = state.positions ?? state.nfaStates ?? [];
+            const positions = state.positions;
             const posString = positions.length > 0 ? `{${positions.join(', ')}}` : '∅';
 
             return (

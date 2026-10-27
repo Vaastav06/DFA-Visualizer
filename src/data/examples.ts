@@ -1,12 +1,10 @@
 /**
  * Example regular expressions offered in the UI.
  *
- * OWNER: Person 3.
  *
  * These are INPUTS only. Never store their compiled output here — that is the
- * compiler's job, and a hard-coded expected NFA/DFA would rot the moment
- * Person 1 changes a numbering detail. Test expectations belong in
- * tests/compiler/.
+ * compiler's job; example inputs stay separate from compiler output.
+ * Test expectations belong in tests/compiler/.
  *
  * Every example must be valid under docs/REGEX_SPECIFICATION.md.
  */

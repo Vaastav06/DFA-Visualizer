@@ -94,14 +94,6 @@ describe('direct DFA construction', () => {
     }
   });
 
-  it('ensures nfaStates equals positions for legacy compatibility', () => {
-    const { dfa } = buildDirectDfa('(a|b)*abb');
-
-    for (const state of dfa.states) {
-      expect(state.nfaStates).toEqual(state.positions);
-    }
-  });
-
   it('is strictly deterministic across repeated runs', () => {
     const dfa1 = buildDirectDfa('(a|b)*abb').dfa;
     const dfa2 = buildDirectDfa('(a|b)*abb').dfa;

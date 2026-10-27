@@ -44,11 +44,7 @@ export function isLiteral(token: string): boolean {
 }
 
 /**
- * The distinct literals of a token list, in ascending order.
- *
- * Deterministic ordering matters: it becomes `NFA.alphabet`, which fixes the
- * column order of the UI transition tables and the iteration order of subset
- * construction. See docs/DECISIONS.md D-007.
+ * Return the distinct literals in ascending order for stable DFA transitions.
  */
 export function collectAlphabet(tokens: string[]): string[] {
   const symbols = new Set<string>();

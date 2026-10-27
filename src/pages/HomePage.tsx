@@ -10,8 +10,7 @@
  *             postfix | <SyntaxTreeGraph /> + <PositionTable /> + <AstAnalysisTable />
  *                     | <FollowposTable />
  *                     | <DfaGraph /> + <TransitionTable /> + <DfaMapping />
- *                     | <DfaGraph kind="minimized-dfa" /> + <TransitionTable /> + <DfaMapping />
- *                     | <StringSimulator />
+ *  *                     | <StringSimulator />
  */
 
 import { useState, useEffect } from 'react';
@@ -31,7 +30,6 @@ import { PositionTable } from '../visualization';
 import { AstAnalysisTable } from '../visualization';
 import { TransitionTable } from '../components/TransitionTable';
 import { DfaMapping } from '../components/DfaMapping';
-import { DfaComparison } from '../components/DfaComparison';
 import { StringSimulator } from '../components/StringSimulator';
 import { useAppContext } from '../context/AppContext';
 import { PIPELINE_STEPS } from '../compiler';
@@ -53,10 +51,8 @@ function explanationFor(stepId: CompilationStepId): string {
       return 'The followpos table is computed from the syntax tree. For each position p with symbol s, followpos(p) contains the set of positions that can immediately follow p in some accepted string.';
     case 'dfa':
       return 'Direct DFA construction creates states from syntax-tree position sets using the followpos table. Each DFA state represents a unique subset of positions, and transitions are determined by which positions follow on each input symbol.';
-    case 'minimized':
-      return 'States are merged when no input string can tell them apart, leaving the smallest equivalent DFA.';
     case 'simulation':
-      return 'The simulator walks the minimized DFA one symbol at a time and reports whether the run ends in an accepting state.';
+      return 'The simulator follows each input symbol through the directly constructed DFA and reports whether the run ends in an accepting state.';
     default:
       return '';
   }
@@ -86,15 +82,12 @@ export function HomePage() {
   const [selectedNodeId, setSelectedNodeId] = useState<number | null>(null);
   const [selectedPosition, setSelectedPosition] = useState<number | null>(null);
   const [selectedDfaStateId, setSelectedDfaStateId] = useState<number | null>(null);
-  const [selectedMinDfaStateId, setSelectedMinDfaStateId] = useState<number | null>(null);
-  const [showComparisonView, setShowComparisonView] = useState(false);
   const [showDeadState, setShowDeadState] = useState(true);
 
   useEffect(() => {
     setSelectedNodeId(null);
     setSelectedPosition(null);
     setSelectedDfaStateId(null);
-    setSelectedMinDfaStateId(null);
   }, [result]);
 
   const handleExpressionChange = (next: string) => {
@@ -125,13 +118,6 @@ export function HomePage() {
   const highlightedDfaStateIds =
     selectedPosition !== null && result?.dfa
       ? result.dfa.states.filter((s) => s.positions?.includes(selectedPosition)).map((s) => s.id)
-      : undefined;
-
-  const highlightedMinDfaStateIds =
-    selectedPosition !== null && result?.minimizedDfa
-      ? result.minimizedDfa.states
-          .filter((s) => s.positions?.includes(selectedPosition))
-          .map((s) => s.id)
       : undefined;
 
   const renderStepContent = () => {
@@ -226,86 +212,7 @@ export function HomePage() {
               </div>
             </div>
           )}
-          {activeStep === 'minimized' && (
-            <div className="stage-graph">
-              <div
-                className="stage-graph__view-toggle"
-                role="group"
-                aria-label="Minimized DFA view mode"
-              >
-                <button
-                  type="button"
-                  className={`button button--secondary ${!showComparisonView ? 'button--primary' : ''}`}
-                  onClick={() => setShowComparisonView(false)}
-                >
-                  Standard View
-                </button>
-                <button
-                  type="button"
-                  className={`button button--secondary ${showComparisonView ? 'button--primary' : ''}`}
-                  onClick={() => setShowComparisonView(true)}
-                >
-                  Compare with Direct DFA
-                </button>
-                <button
-                  type="button"
-                  className={`button button--secondary ${showDeadState ? 'button--active' : ''}`}
-                  onClick={() => setShowDeadState((prev) => !prev)}
-                  aria-pressed={showDeadState}
-                  title="Toggle visual trap / dead state display (qd)"
-                >
-                  {showDeadState ? 'Trap State: ON' : 'Trap State: OFF'}
-                </button>
-              </div>
-
-              {!showComparisonView ? (
-                <>
-                  <DfaGraph
-                    dfa={result.minimizedDfa}
-                    kind="minimized-dfa"
-                    selectedStateId={selectedMinDfaStateId}
-                    highlightedStateIds={highlightedMinDfaStateIds}
-                    showDeadState={showDeadState}
-                    onStateClick={(id) =>
-                      setSelectedMinDfaStateId((prev) => (prev === id ? null : id))
-                    }
-                  />
-                  <div className="table-scroll">
-                    <TransitionTable
-                      dfa={result.minimizedDfa}
-                      caption="Minimized DFA transition table"
-                      selectedStateId={selectedMinDfaStateId}
-                      showDeadState={showDeadState}
-                      onSelectState={(id) =>
-                        setSelectedMinDfaStateId((prev) => (prev === id ? null : id))
-                      }
-                    />
-                  </div>
-                  <div className="table-scroll">
-                    <DfaMapping
-                      dfa={result.minimizedDfa}
-                      caption="Minimized DFA state mapping"
-                      selectedStateId={selectedMinDfaStateId}
-                      onSelectState={(id) =>
-                        setSelectedMinDfaStateId((prev) => (prev === id ? null : id))
-                      }
-                    />
-                  </div>
-                </>
-              ) : (
-                <DfaComparison
-                  directDfa={result.dfa}
-                  minimizedDfa={result.minimizedDfa}
-                  selectedMinStateId={selectedMinDfaStateId}
-                  onSelectMinState={setSelectedMinDfaStateId}
-                  selectedDirectStateId={selectedDfaStateId}
-                  onSelectDirectState={setSelectedDfaStateId}
-                  showDeadState={showDeadState}
-                />
-              )}
-            </div>
-          )}
-          {activeStep === 'simulation' && <StringSimulator dfa={result.minimizedDfa} />}
+          {activeStep === 'simulation' && <StringSimulator dfa={result.dfa} />}
         </StepContent>
         <AlgorithmExplanation title={step.title}>
           {explanationFor(step.id as CompilationStepId)}
@@ -320,7 +227,7 @@ export function HomePage() {
         <h1 className="page__title">Regular Expression to DFA Visualizer</h1>
         <p className="page__subtitle">
           Enter a regular expression and follow it through tokenization, syntax-tree analysis,
-          followpos, direct DFA construction and minimization.
+          followpos, and direct DFA construction.
         </p>
       </header>
 

@@ -14,7 +14,7 @@
 import { MarkerType } from '@xyflow/react';
 import type { GraphHighlight } from '../types';
 import type { TransitionEdgeType } from '../components/TransitionEdge';
-import type { AdaptedGraph } from './nfaAdapter';
+import type { AdaptedGraph } from './graphTypes';
 import {
   routeEdges,
   STATE_NODE_SIZE,
@@ -23,7 +23,7 @@ import {
 } from '../layout/edgeRouting';
 import { edgeColor } from '../graphColors';
 
-type HighlightedTransition = { from: number; to: number; symbol?: string | null };
+type HighlightedTransition = { from: number; to: number; symbol?: string };
 
 /** Route all edges of `graph` given each node's top-left position. */
 export function routeGraph(

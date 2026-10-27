@@ -83,8 +83,8 @@ describe('buildFlowEdges', () => {
   it('does not highlight a parallel sibling with a different symbol', () => {
     const dfa: DFA = {
       states: [
-        { id: 0, positions: [1], nfaStates: [1], isAccepting: false },
-        { id: 1, positions: [2], nfaStates: [2], isAccepting: true },
+        { id: 0, positions: [1], isAccepting: false },
+        { id: 1, positions: [2], isAccepting: true },
       ],
       alphabet: ['a', 'b'],
       startState: 0,

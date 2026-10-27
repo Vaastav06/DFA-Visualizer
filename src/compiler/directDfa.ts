@@ -1,9 +1,7 @@
 /**
  * Stage 6 - Direct Regular Expression to DFA Construction.
  *
- * OWNER: Person 1.
- * CONTRACT: constructs a DFA directly from the syntax tree and followpos table,
- * without creating any NFA, epsilon transitions, or subset construction.
+ * CONTRACT: constructs the DFA directly from the syntax tree and followpos table.
  *
  * Algorithm:
  *  1. Initial DFA state D0 = firstpos(root)
@@ -18,7 +16,6 @@
  * Output invariants:
  *  - State IDs are 0..n-1 in discovery order; state 0 is the start state.
  *  - `positions` is the canonical, sorted, duplicate-free array of leaf positions.
- *  - `nfaStates` is set to `[...positions]` for legacy compatibility.
  *  - Empty transition targets are NOT materialized (partial DFA policy D-006).
  *  - No epsilon transitions.
  */
@@ -76,7 +73,6 @@ export function constructDirectDFA(
     states.push({
       id,
       positions: canonicalPositions,
-      nfaStates: [...canonicalPositions],
       isAccepting,
     });
 
